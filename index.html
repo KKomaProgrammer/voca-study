@@ -1,0 +1,1925 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>VOCA Audio Quiz v16</title>
+<style>
+  :root{
+    --bg:#f4f7fb;--card:#fff;--ink:#0f172a;--muted:#64748b;--line:#e2e8f0;
+    --primary:#2563eb;--primary2:#1d4ed8;--soft:#eff6ff;--good:#16a34a;--bad:#dc2626;
+    --shadow:0 24px 70px rgba(15,23,42,.10);--radius:28px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{margin:0;font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans KR",Arial,sans-serif;background:radial-gradient(circle at 10% 0%,#dbeafe 0,#f8fafc 32%,#f8fafc 100%);color:var(--ink)}
+  button,input,select,textarea{font:inherit}
+  button{touch-action:manipulation}
+  .app{width:min(1020px,100%);margin:0 auto;padding:18px 16px 34px}
+  .top{position:sticky;top:0;z-index:15;margin:0 -16px 16px;padding:12px 16px;background:rgba(248,250,252,.86);backdrop-filter:blur(18px);border-bottom:1px solid rgba(226,232,240,.75)}
+  .topRow{display:flex;align-items:center;justify-content:space-between;gap:12px;width:min(1020px,100%);margin:0 auto}
+  .brand{display:flex;align-items:center;gap:10px;min-width:0}
+  .logo{width:40px;height:40px;border-radius:16px;background:linear-gradient(135deg,#2563eb,#7c3aed);box-shadow:0 12px 30px rgba(37,99,235,.22)}
+  .title{font-size:20px;font-weight:950;letter-spacing:-.04em;white-space:nowrap}
+  .ready{font-size:12px;font-weight:900;color:#fff;background:#0f172a;border-radius:999px;padding:8px 11px;white-space:nowrap}
+  .gear{width:44px;height:44px;border:0;border-radius:17px;background:#fff;color:#0f172a;box-shadow:0 8px 24px rgba(15,23,42,.08);font-size:20px;cursor:pointer}
+  .nav{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0 0}
+  .nav button{border:0;border-radius:17px;background:#e2e8f0;color:#475569;padding:12px 10px;font-weight:950;cursor:pointer}
+  .nav button.on{background:#fff;color:#0f172a;box-shadow:0 12px 28px rgba(15,23,42,.08)}
+  .scene{display:none;animation:fadeIn .22s ease both}
+  .scene.on{display:block}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .card{background:rgba(255,255,255,.92);border:1px solid rgba(226,232,240,.9);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px}
+  .cardTitle{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 14px}
+  .cardTitle h2{margin:0;font-size:17px;letter-spacing:-.03em}
+  label{display:block;color:#334155;font-size:13px;font-weight:900;margin:13px 0 7px}
+  .filebox{display:block;border:1.5px dashed #93c5fd;background:linear-gradient(135deg,#eff6ff,#fff);border-radius:24px;padding:24px 18px;text-align:center;cursor:pointer;transition:.16s}
+  .filebox:active{transform:scale(.99)}
+  .filebox b{display:block;font-size:18px;margin-bottom:6px;letter-spacing:-.03em}
+  .filebox span{font-size:12px;color:var(--muted);font-weight:800}
+  input[type=file]{display:none}
+  input[type=number],input[type=text],select,textarea{width:100%;border:1px solid var(--line);border-radius:18px;padding:13px 14px;background:#fff;outline:none;color:#0f172a;font-weight:800}
+  textarea{min-height:146px;resize:vertical;line-height:1.45;font-weight:650}
+  input:focus,select:focus,textarea:focus{border-color:#60a5fa;box-shadow:0 0 0 4px #dbeafe}
+  .row{display:grid;grid-template-columns:1fr 1.2fr;gap:10px}
+  .btn{border:0;border-radius:18px;padding:13px 16px;font-weight:950;cursor:pointer;background:#e2e8f0;color:#0f172a;display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:48px}
+  .btn.primary{background:var(--primary);color:#fff;box-shadow:0 12px 26px rgba(37,99,235,.24)}
+  .btn.good{background:#dcfce7;color:#166534}.btn.bad{background:#fee2e2;color:#991b1b}.btn.full{width:100%}
+  .btn:active{transform:scale(.985)}
+  .bars{display:grid;gap:10px;margin-top:16px}
+  .barrow{display:grid;grid-template-columns:76px 1fr 42px;gap:9px;align-items:center;font-size:12px;color:#475569;font-weight:900}
+  .bar{height:10px;border-radius:999px;background:#e2e8f0;overflow:hidden}
+  .bar i{display:block;height:100%;width:0%;background:linear-gradient(90deg,#60a5fa,#2563eb);border-radius:999px;transition:width .12s linear}
+  .status{font-size:13px;color:#475569;font-weight:900;margin-top:10px;min-height:20px}
+  .stage{border-radius:32px;background:linear-gradient(135deg,#eff6ff,#f5f3ff);border:1px solid #dbeafe;padding:28px 18px;text-align:center;min-height:360px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+  .counter{font-size:14px;color:#475569;font-weight:950}
+  .word{font-size:44px;line-height:1.05;font-weight:950;letter-spacing:-.05em;word-break:keep-all}
+  .meaning{font-size:17px;color:#334155;font-weight:850;min-height:25px}
+  .controls{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+  .quizWrap{display:grid;gap:14px}
+  .quizMain{min-height:295px}
+  .answerBox{background:#fff;border:1px solid var(--line);border-radius:28px;padding:16px;box-shadow:0 16px 40px rgba(15,23,42,.06)}
+  .answerGrid{display:grid;grid-template-columns:1fr;gap:10px}
+  .answerGrid.two{grid-template-columns:1fr 1fr}
+  .answer{font-size:20px;text-align:center;padding:17px 15px!important;border-radius:20px!important}
+  .score{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .score div{background:#fff;border:1px solid var(--line);border-radius:20px;padding:13px;text-align:center;font-weight:950}
+  .score span{display:block;color:var(--muted);font-size:12px;margin-bottom:4px}
+  .list{margin-top:14px;display:grid;gap:8px;max-height:250px;overflow:auto}
+  .item,.historyItem{width:100%;border:1px solid #e2e8f0;background:#fff;border-radius:18px;padding:11px 12px;display:grid;grid-template-columns:72px 1fr auto 28px;gap:10px;align-items:center;text-align:left;font-size:13px;font-weight:850;color:#0f172a}
+  .item{grid-template-columns:54px 1fr auto}
+  .historyItem b,.item b{color:#2563eb}
+  .historyItem small,.item small{color:var(--muted);font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .historyItem i{font-style:normal;text-align:center;color:#2563eb}
+  .ok{color:var(--good)!important}.no{color:var(--bad)!important}
+  .hidden{display:none!important}
+  .miniGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  input[type=range]{width:100%;accent-color:var(--primary)}
+  .switch{display:flex;gap:9px;align-items:center;background:#f8fafc;border:1px solid var(--line);padding:11px 12px;border-radius:18px;font-size:13px;font-weight:900;color:#334155}
+  .switch input{width:18px;height:18px;accent-color:var(--primary)}
+  .modalOverlay{position:fixed;inset:0;z-index:50;background:rgba(15,23,42,.34);display:flex;align-items:center;justify-content:center;padding:18px;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .24s ease,visibility .24s ease}
+  .settingsOpen .modalOverlay{opacity:1;visibility:visible;pointer-events:auto}
+  .modal{width:min(720px,100%);max-height:min(760px,92vh);overflow:auto;background:rgba(255,255,255,.96);border:1px solid rgba(226,232,240,.95);border-radius:32px;box-shadow:0 32px 100px rgba(15,23,42,.25);padding:18px;opacity:0;transform:translateY(14px) scale(.97);transition:opacity .24s ease,transform .24s ease}
+  .settingsOpen .modal{opacity:1;transform:translateY(0) scale(1)}
+  .modalHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+  .modalHead h2{font-size:18px;margin:0;letter-spacing:-.03em}
+  .iconBtn{width:42px;height:42px;border:0;border-radius:16px;background:#f1f5f9;font-size:20px;font-weight:950;cursor:pointer}
+  .ico{width:21px;height:21px;display:inline-block;vertical-align:-4px;stroke:currentColor;fill:none;stroke-width:2.35;stroke-linecap:round;stroke-linejoin:round}
+  .gear .ico,.iconOnly .ico{width:22px;height:22px;vertical-align:-5px}
+
+  .btn:disabled{opacity:.45;cursor:not-allowed;transform:none!important}
+  .quizTools{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+  .resultRow{grid-template-columns:74px 1fr 1.4fr 44px 72px}
+  .resultRow .playMini{width:38px;height:38px;min-height:38px;border-radius:14px;padding:0}
+  .wrongMark{display:flex!important;align-items:center;justify-content:center;gap:6px;margin:0!important;color:#334155;font-size:12px;font-weight:950}
+  .wrongMark input{width:17px;height:17px;accent-color:var(--bad)}
+  .quiet{color:var(--muted);font-size:13px;font-weight:900;text-align:center;padding:12px}
+
+  .iconOnly{width:52px;min-width:52px;padding:0;font-size:20px;border-radius:19px}
+  .softTools{gap:8px}.softTools .btn{min-height:46px}
+  .flashcard{width:min(520px,100%);height:230px;perspective:1100px;cursor:pointer;margin:2px auto}
+  .flashInner{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .55s cubic-bezier(.2,.8,.2,1)}
+  .flashcard.flipped .flashInner{transform:rotateY(180deg)}
+  .flashFace{position:absolute;inset:0;border-radius:30px;background:rgba(255,255,255,.94);border:1px solid rgba(219,234,254,.95);box-shadow:0 22px 54px rgba(15,23,42,.10);display:flex;align-items:center;justify-content:center;flex-direction:column;padding:24px;backface-visibility:hidden;text-align:center}
+  .flashBack{transform:rotateY(180deg);background:linear-gradient(135deg,#ffffff,#f8fbff)}
+  .flashHint{font-size:12px;color:var(--muted);font-weight:900;margin-top:10px}
+  .flashMeaning{font-size:24px;line-height:1.55;font-weight:950;color:#0f172a;white-space:pre-line;word-break:keep-all}
+  .flashWord{font-size:44px;line-height:1.08;font-weight:950;letter-spacing:-.045em;word-break:break-word}
+  .modal{overflow:hidden;display:flex;flex-direction:column}
+  .settingsBody{overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;padding:0 6px 4px 0;margin-right:-6px}
+  .settingsBody::-webkit-scrollbar,.list::-webkit-scrollbar{width:9px}.settingsBody::-webkit-scrollbar-thumb,.list::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:999px;border:2px solid #fff}.settingsBody::-webkit-scrollbar-track,.list::-webkit-scrollbar-track{background:transparent}
+  .settingsGroup{background:#f8fafc;border:1px solid var(--line);border-radius:22px;padding:12px;margin:10px 0}
+  .settingsGroup label:first-child{margin-top:0}
+  .pillRow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .smallNote{font-size:12px;color:var(--muted);font-weight:850}
+
+
+  .settingsFooter{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding-top:12px;border-top:1px solid var(--line);margin-top:10px}
+  .settingsFooter .btn{width:100%;min-height:50px}
+  .wordApplyHidden{display:none!important}
+
+  .skeletonLayer{display:none!important}
+  @keyframes skeletonWave{100%{transform:translateX(100%)}}
+  @keyframes mainSkeletonWave{0%{background-position:180% 0}100%{background-position:-180% 0}}
+  body.mainSkeleton .scene.on .card{position:relative;overflow:hidden}
+  body.mainSkeleton .scene.on .card::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,transparent,rgba(255,255,255,.64),transparent);transform:translateX(-100%);animation:skeletonWave 1.18s infinite;z-index:4}
+  body.mainSkeleton .scene.on .card .filebox,
+  body.mainSkeleton .scene.on .card input,
+  body.mainSkeleton .scene.on .card select,
+  body.mainSkeleton .scene.on .card textarea,
+  body.mainSkeleton .scene.on .card .btn,
+  body.mainSkeleton .scene.on .card .stage,
+  body.mainSkeleton .scene.on .card .answerBox,
+  body.mainSkeleton .scene.on .card .score div,
+  body.mainSkeleton .scene.on .card .settingsGroup{background-image:linear-gradient(90deg,#eef2f7 0%,#f8fafc 42%,#e2e8f0 78%);background-size:220% 100%;animation:mainSkeletonWave 1.28s linear infinite;border-color:#e2e8f0!important;color:transparent!important;text-shadow:none!important}
+  body.mainSkeleton .scene.on .card input::placeholder,
+  body.mainSkeleton .scene.on .card textarea::placeholder{color:transparent!important}
+  body.mainSkeleton .scene.on .card .bars,
+  body.mainSkeleton .scene.on .card .status,
+  body.mainSkeleton .scene.on .card .cardTitle{position:relative;z-index:5;color:#475569!important}
+  body.mainSkeleton .scene.on .card .bar i{animation:none}
+  .skeletonText{font-size:13px;color:#475569;font-weight:950;margin-top:8px}
+
+  @media(max-width:760px){
+    .app{padding:12px 12px 26px}.top{margin:0 -12px 12px;padding:10px 12px}.title{font-size:18px}.logo{width:36px;height:36px;border-radius:14px}.ready{display:none}
+    .nav{gap:6px}.nav button{padding:11px 8px;border-radius:15px;font-size:14px}
+    .card{padding:14px;border-radius:24px}.stage{min-height:300px;border-radius:26px;padding:24px 12px}.word{font-size:36px}
+    .row,.miniGrid,.answerGrid.two{grid-template-columns:1fr}
+    .controls{display:grid;grid-template-columns:1fr 1fr;width:100%}.controls .btn{width:100%}
+    .quizMain .controls{grid-template-columns:1fr}
+    .answerBox{position:sticky;bottom:10px;z-index:5;border-radius:24px}
+    .score{grid-template-columns:repeat(3,1fr);gap:7px}.score div{padding:10px 8px;border-radius:16px}
+    .historyItem{grid-template-columns:64px 1fr 24px;font-size:12px}.historyItem small{grid-column:2/3}.historyItem i{grid-row:1/3;grid-column:3/4}
+    .resultRow{grid-template-columns:60px 1fr 38px;gap:7px}.resultRow small{grid-column:2/3}.resultRow .playMini{grid-column:3/4;grid-row:1/3}.resultRow .wrongMark{grid-column:1/4;justify-content:flex-start}
+    .barrow{grid-template-columns:66px 1fr 38px}
+    .flashcard{height:210px}.flashWord{font-size:34px}.flashMeaning{font-size:21px}
+  }
+</style>
+</head>
+<body>
+  <div class="top">
+    <div class="topRow">
+      <div class="brand"><div class="logo"></div><div class="title">VOCA Audio Quiz</div></div>
+      <div class="ready" id="readyPill">대기 중</div>
+      <button class="gear" id="openSettings" type="button" aria-label="설정"></button>
+    </div>
+    <div class="nav">
+      <button class="on" type="button" data-scene="setup">준비</button>
+      <button type="button" data-scene="listen">듣기</button>
+      <button type="button" data-scene="quiz">시험</button>
+    </div>
+  </div>
+
+  <div class="app">
+    <section id="setup" class="scene on">
+      <div class="card">
+        <div class="cardTitle"><h2>파일</h2></div>
+        <label class="filebox" for="zipInput"><b id="fileName">ZIP 업로드</b><span>MP3 / ZIP</span></label>
+        <input id="zipInput" type="file" accept=".zip,.mp3,audio/mpeg" multiple />
+        <div class="row">
+          <div><label>회차</label><input id="dayInput" type="number" min="1" max="999" value="53" /></div>
+          <div><label>구간 기준</label><select id="cutPreset"><option value="normal" selected>기본</option><option value="wide">넓게</option><option value="tight">촘촘하게</option></select></div>
+        </div>
+        <button class="btn primary full" id="analyzeBtn" style="margin-top:14px">분석 시작</button>
+        <div class="status" id="statusText"></div>
+        <div class="bars">
+          <div class="barrow"><span>ZIP</span><div class="bar"><i id="barZip"></i></div><em id="numZip">0%</em></div>
+          <div class="barrow"><span>디코드</span><div class="bar"><i id="barDecode"></i></div><em id="numDecode">0%</em></div>
+          <div class="barrow"><span>단어만</span><div class="bar"><i id="barTwo"></i></div><em id="numTwo">0%</em></div>
+          <div class="barrow"><span>단어+뜻</span><div class="bar"><i id="barPlus"></i></div><em id="numPlus">0%</em></div>
+          <div class="barrow"><span>인식</span><div class="bar"><i id="barAsr"></i></div><em id="numAsr">0%</em></div>
+          <div class="barrow"><span>전체</span><div class="bar"><i id="barAll"></i></div><em id="numAll">0%</em></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="listen" class="scene">
+      <div class="card">
+        <div class="stage">
+          <div class="counter" id="listenCount">0 / 0</div>
+          <div class="flashcard" id="flashcard" title="카드를 클릭하면 뒤집힙니다">
+            <div class="flashInner">
+              <div class="flashFace flashFront">
+                <div class="flashWord" id="listenTitle">업로드</div>
+                <div class="flashHint">클릭하면 뜻 보기</div>
+              </div>
+              <div class="flashFace flashBack">
+                <div class="flashMeaning" id="listenSub"></div>
+                <div class="flashHint">클릭하면 단어 보기</div>
+              </div>
+            </div>
+          </div>
+          <div class="controls softTools">
+            <button class="btn primary iconOnly" id="playOne" title="재생" aria-label="재생"></button>
+            <button class="btn good" id="playAll" title="랜덤 전체" aria-label="랜덤 전체"></button>
+            <button class="btn bad iconOnly" id="stopListen" title="정지" aria-label="정지"></button>
+          </div>
+        </div>
+        <div class="controls">
+          <button class="btn iconOnly" id="prevBtn" title="이전">‹</button>
+          <button class="btn iconOnly" id="shuffleBtn" title="랜덤" aria-label="랜덤"></button>
+          <button class="btn iconOnly" id="nextBtn" title="다음">›</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="quiz" class="scene">
+      <div class="quizWrap">
+        <div class="card quizMain">
+          <div class="stage quizMain">
+            <div class="counter" id="quizCount">0 / 0</div>
+            <div class="word" id="quizTitle">시험</div>
+            <div class="meaning" id="quizFeedback"></div>
+            <div class="controls">
+              <button class="btn primary iconOnly" id="quizPlay" title="다시 듣기" aria-label="다시 듣기"></button>
+              <button class="btn" id="startQuiz">시작</button>
+              <button class="btn" id="pauseQuiz" title="일시정지"></button>
+              <button class="btn bad" id="stopQuiz">시험 종료</button>
+            </div>
+          </div>
+        </div>
+        <div class="answerBox" id="answerBox">
+          <div class="answerGrid" id="answerGrid">
+            <input class="answer" id="answerInput" type="text" autocomplete="off" placeholder="단어 입력" />
+            <input class="answer hidden" id="meaningInput" type="text" autocomplete="off" placeholder="뜻 입력" />
+          </div>
+          <div class="controls">
+            <button class="btn good" id="submitAnswer">확인</button>
+            <button class="btn" id="skipAnswer">넘기기</button>
+          </div>
+        </div>
+        <div class="score">
+          <div><span>정답</span><b id="scoreOk">0</b></div>
+          <div><span>오답</span><b id="scoreNo">0</b></div>
+          <div><span>남은 수</span><b id="scoreLeft">0</b></div>
+        </div>
+        <div class="quizTools">
+          <button class="btn good" id="finalSubmit">최종 제출</button>
+          <button class="btn" id="retryWrong">틀린 문제 다시</button>
+        </div>
+        <div class="list" id="resultList"></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="skeletonLayer" id="loadingSkeleton" aria-hidden="true">
+    <div class="skeletonBox">
+      <div class="skeletonHead"><div class="skeletonCircle"></div><div style="flex:1"><div class="skeletonLine small"></div><div class="skeletonText" id="skeletonTitle">불러오는 중</div></div></div>
+      <div class="skeletonLine big"></div>
+      <div class="skeletonLine mid"></div>
+      <div class="skeletonLine small"></div>
+      <div class="skeletonLine full"></div>
+      <div class="skeletonText" id="skeletonSub">잠시만 기다려 주세요.</div>
+    </div>
+  </div>
+
+  <div class="modalOverlay" id="settingsOverlay">
+    <section class="modal" role="dialog" aria-modal="true">
+      <div class="modalHead"><h2>설정</h2><button class="iconBtn" id="closeSettings" type="button" aria-label="닫기"></button></div>
+      <div class="settingsBody">
+      <div class="settingsGroup">
+      <div class="miniGrid">
+        <div><label>듣기 오디오</label><select id="studyAudio"><option value="meaning" selected>단어+뜻</option><option value="wordOnly">단어만</option><option value="meaningOnly">뜻만</option></select></div>
+        <div><label>시험 오디오</label><select id="testAudio"><option value="wordOnly" selected>단어만</option><option value="meaningOnly">뜻만</option><option value="meaning">단어+뜻</option></select></div>
+      </div>
+      </div>
+      <div class="settingsGroup">
+      <div class="switch"><input id="asrEnabled" type="checkbox" checked><span>음성에서 단어와 뜻 글자 추출</span></div>
+      </div>
+      <div class="settingsGroup">
+      <div class="miniGrid">
+        <div><label>시험 방식</label><select id="quizMode"><option value="typing" selected>직접 쓰기</option><option value="audioOnly">오디오만</option></select></div>
+        <div><label>입력 정답</label><select id="answerMode"><option value="word" selected>단어만</option><option value="meaning">뜻만</option><option value="both">단어+뜻</option><option value="either">단어 또는 뜻</option></select></div>
+      </div>
+      </div>
+      <div class="settingsGroup">
+      <div class="miniGrid">
+        <div><label>결과 표시</label><select id="resultTiming"><option value="final" selected>최종 제출 후</option><option value="immediate">넘길 때 바로</option></select></div>
+        <div><label>연속 재생</label><input id="repeatCount" type="number" min="1" max="10" value="1" /></div>
+      </div>
+      <div class="switch"><input id="audioAutoNext" type="checkbox" checked><span>들은 뒤 바로 다음 문제로</span></div>
+      </div>
+      <div class="settingsGroup">
+      <label>단어 사이 쉼</label>
+      <div class="switch"><input id="autoGap" type="checkbox" checked><span>자동</span></div>
+      <input id="gapRange" type="range" min="300" max="4500" step="100" value="1800" disabled />
+      <div class="status"><span id="gapLabel">자동</span></div>
+      </div>
+      <div class="settingsGroup">
+      <label>정답 목록</label>
+      <textarea id="wordText" placeholder="word 뜻\nword,뜻\nword\t뜻"></textarea>
+      <button class="btn full wordApplyHidden" id="applyWords" type="button">정답 목록 반영</button>
+      </div>
+      </div>
+      <div class="settingsFooter">
+        <button class="btn" id="cancelSettings" type="button">취소</button>
+        <button class="btn primary" id="applySettings" type="button">적용</button>
+      </div>
+    </section>
+  </div>
+
+<script>
+(() => {
+  const $ = sel => document.querySelector(sel);
+  const els = {
+    zipInput: $('#zipInput'), fileName: $('#fileName'), dayInput: $('#dayInput'), analyzeBtn: $('#analyzeBtn'), cutPreset: $('#cutPreset'),
+    status: $('#statusText'), ready: $('#readyPill'), wordText: $('#wordText'), applyWords: $('#applyWords'),
+    studyAudio: $('#studyAudio'), testAudio: $('#testAudio'), quizMode: $('#quizMode'), answerMode: $('#answerMode'), resultTiming: $('#resultTiming'), repeatCount: $('#repeatCount'), audioAutoNext: $('#audioAutoNext'), autoGap: $('#autoGap'), gapRange: $('#gapRange'), gapLabel: $('#gapLabel'), asrEnabled: $('#asrEnabled'), skeleton: $('#loadingSkeleton'), skeletonTitle: $('#skeletonTitle'), skeletonSub: $('#skeletonSub'),
+    listenCount: $('#listenCount'), listenTitle: $('#listenTitle'), listenSub: $('#listenSub'), flashcard: $('#flashcard'), playOne: $('#playOne'), playAll: $('#playAll'), stopListen: $('#stopListen'),
+    prevBtn: $('#prevBtn'), nextBtn: $('#nextBtn'), shuffleBtn: $('#shuffleBtn'),
+    quizCount: $('#quizCount'), quizTitle: $('#quizTitle'), answerGrid: $('#answerGrid'), answerInput: $('#answerInput'), meaningInput: $('#meaningInput'), quizFeedback: $('#quizFeedback'),
+    quizPlay: $('#quizPlay'), submitAnswer: $('#submitAnswer'), skipAnswer: $('#skipAnswer'), startQuiz: $('#startQuiz'), pauseQuiz: $('#pauseQuiz'), stopQuiz: $('#stopQuiz'), finalSubmit: $('#finalSubmit'), retryWrong: $('#retryWrong'),
+    scoreOk: $('#scoreOk'), scoreNo: $('#scoreNo'), scoreLeft: $('#scoreLeft'), resultList: $('#resultList'), applySettings: $('#applySettings'), cancelSettings: $('#cancelSettings')
+  };
+  const bars = {
+    zip: [$('#barZip'), $('#numZip')], decode: [$('#barDecode'), $('#numDecode')], two: [$('#barTwo'), $('#numTwo')], plus: [$('#barPlus'), $('#numPlus')], asr: [$('#barAsr'), $('#numAsr')], all: [$('#barAll'), $('#numAll')]
+  };
+  const ICONS = {
+    gear:'<svg class="ico" viewBox="0 0 24 24"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.05.05a2 2 0 0 1-2.83 2.83l-.05-.05A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6V20a2 2 0 0 1-4 0v-.07a1.7 1.7 0 0 0-1-.6 1.7 1.7 0 0 0-1.88.34l-.05.05a2 2 0 1 1-2.83-2.83l.05-.05A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1H4a2 2 0 0 1 0-4h.07a1.7 1.7 0 0 0 .6-1 1.7 1.7 0 0 0-.34-1.88l-.05-.05a2 2 0 1 1 2.83-2.83l.05.05A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.6V4a2 2 0 0 1 4 0v.07a1.7 1.7 0 0 0 1 .6 1.7 1.7 0 0 0 1.88-.34l.05-.05a2 2 0 1 1 2.83 2.83l-.05.05A1.7 1.7 0 0 0 19.4 9c.15.35.35.68.6 1H20a2 2 0 0 1 0 4h-.07a1.7 1.7 0 0 0-.53 1Z"/></svg>',
+    play:'<svg class="ico" viewBox="0 0 24 24"><path d="M8 5v15l11-7-11-7Z"/></svg>',
+    pause:'<svg class="ico" viewBox="0 0 24 24"><path d="M8 5v15"/><path d="M16 5v15"/></svg>',
+    stop:'<svg class="ico" viewBox="0 0 24 24"><path d="M7 7h10v10H7z"/></svg>',
+    next:'<svg class="ico" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>',
+    prev:'<svg class="ico" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>',
+    shuffle:'<svg class="ico" viewBox="0 0 24 24"><path d="M16 3h5v5"/><path d="M4 20 21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/></svg>',
+    volume:'<svg class="ico" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4Z"/><path d="M16 9.5a4 4 0 0 1 0 5"/><path d="M18.5 7a7.5 7.5 0 0 1 0 10"/></svg>',
+    close:'<svg class="ico" viewBox="0 0 24 24"><path d="M6 6l12 12"/><path d="M18 6 6 18"/></svg>'
+  };
+  function initIcons(){
+    const set=(id,html)=>{ const el=document.getElementById(id); if(el) el.innerHTML=html; };
+    set('openSettings', ICONS.gear);
+    set('playOne', ICONS.play);
+    set('playAll', ICONS.shuffle + '<span>전체</span>');
+    set('stopListen', ICONS.stop);
+    set('prevBtn', ICONS.prev);
+    set('nextBtn', ICONS.next);
+    set('shuffleBtn', ICONS.shuffle);
+    set('quizPlay', ICONS.volume);
+    set('closeSettings', ICONS.close);
+  }
+
+  let worker, audioCtx, selectedFiles = [], rawAudio = {}, audioBuffers = {}, segments = {}, fineSegments = {}, items = [], words = [];
+  let listenIndex = 0, playToken = 0, quizToken = 0, currentSource = null, quiz = null;
+  const CACHE_KEY = 'voca_audio_quiz_analysis_v15';
+  const SESSION_KEY = 'voca_audio_quiz_session_v15';
+  const DB_NAME = 'voca_audio_quiz_store_v15';
+  const DB_STORE = 'kv';
+  let currentSig = '';
+  let audioRoles = { wordOnly: 'two', meaning: 'plus', meaningOnly: 'meaningOnly' };
+
+  const workerCode = `
+  const te = new TextEncoder();
+  let td8 = new TextDecoder('utf-8');
+  let tdKR; try{ tdKR = new TextDecoder('euc-kr'); }catch(e){ tdKR = td8; }
+  const clamp = (n,a,b)=>Math.max(a,Math.min(b,n));
+  function postProgress(id,key,value,text){ self.postMessage({id,progress:true,key,value,text}); }
+  function u16(dv,p){ return dv.getUint16(p,true); }
+  function u32(dv,p){ return dv.getUint32(p,true); }
+  function scoreName(s){ let score=0; for(const ch of s){ const c=ch.charCodeAt(0); if(ch==='�')score-=20; else if(c>=0xac00&&c<=0xd7a3)score+=3; else if(c>=32&&c<127)score+=1; } return score; }
+  function decodeName(bytes, flags){
+    if(flags & 0x800) return td8.decode(bytes);
+    const a=td8.decode(bytes), b=tdKR.decode(bytes);
+    return scoreName(b)>scoreName(a)?b:a;
+  }
+  function findEOCD(dv){
+    const min=Math.max(0,dv.byteLength-66000);
+    for(let p=dv.byteLength-22;p>=min;p--){ if(u32(dv,p)===0x06054b50) return p; }
+    throw new Error('ZIP 파일을 읽을 수 없습니다.');
+  }
+  async function inflateRaw(buf){
+    if(typeof DecompressionStream==='undefined') throw new Error('이 브라우저는 ZIP 해제를 지원하지 않습니다.');
+    try{
+      const ds = new DecompressionStream('deflate-raw');
+      return await new Response(new Blob([buf]).stream().pipeThrough(ds)).arrayBuffer();
+    }catch(e){
+      const ds = new DecompressionStream('deflate');
+      return await new Response(new Blob([buf]).stream().pipeThrough(ds)).arrayBuffer();
+    }
+  }
+  function normalizeMatchName(name){
+    return String(name||'')
+      .toLowerCase()
+      .replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0)-0xFEE0))
+      .replace(/[\s_\-–—.()\[\]{}]/g,'');
+  }
+  function hasDayName(name, day){
+    const d = String(day||'').trim().replace(/^0+/,'') || String(day||'').trim();
+    if(!d) return true;
+    const n = normalizeMatchName(name);
+    return new RegExp('day0*'+d+'(?!\\d)','i').test(n);
+  }
+  function classifyAudioName(name){
+    const n = normalizeMatchName(name);
+    if(/(단어만|영단어만|표제어만|wordonly|wordsonly|onlyword|onlywords|audioonlyword|단어2회|영단어2회)/i.test(n)) return 'wordOnly';
+    if(/(표제어\+?뜻|단어\+?뜻|뜻포함|뜻|meaning|meanings|wordmeaning|word\+meaning|ko|kor|korean)/i.test(n)) return 'meaning';
+    if(/(표제어?2회|2회|twice|2times|word2|words2|x2|repeat2|double)/i.test(n)) return 'two';
+    return '';
+  }
+  async function readZip(id, buffer, day){
+    const dv = new DataView(buffer);
+    const eocd = findEOCD(dv);
+    const total = u16(dv,eocd+10);
+    let p = u32(dv,eocd+16);
+    const out = {wordOnly:null, meaning:null, two:null, plus:null, auto:[], texts:[], names:[]};
+    const entries=[];
+    for(let i=0;i<total;i++){
+      if(u32(dv,p)!==0x02014b50) break;
+      const flags=u16(dv,p+8), method=u16(dv,p+10), comp=u32(dv,p+20), uncomp=u32(dv,p+24);
+      const nameLen=u16(dv,p+28), extraLen=u16(dv,p+30), commentLen=u16(dv,p+32), local=u32(dv,p+42);
+      const nameBytes=new Uint8Array(buffer,p+46,nameLen);
+      const name=decodeName(nameBytes,flags);
+      entries.push({name,flags,method,comp,uncomp,local});
+      p += 46 + nameLen + extraLen + commentLen;
+      if(i%30===0) postProgress(id,'zip',i/Math.max(1,total)*0.25,'ZIP 목록 확인 중');
+    }
+    const wanted=[];
+    for(const e of entries){
+      const low=e.name.toLowerCase();
+      if(!hasDayName(e.name, day)) continue;
+      if(/\.(mp3|m4a|wav)$/i.test(low)){
+        wanted.push({...e,kind:classifyAudioName(e.name)||'auto'});
+      }else if(/\.(txt|csv|json)$/i.test(low)) wanted.push({...e,kind:'text'});
+    }
+    let done=0;
+    for(const e of wanted){
+      const lp=e.local;
+      if(u32(dv,lp)!==0x04034b50) continue;
+      const ln=u16(dv,lp+26), le=u16(dv,lp+28), start=lp+30+ln+le;
+      let data=buffer.slice(start,start+e.comp);
+      if(e.method===8) data=await inflateRaw(data);
+      else if(e.method!==0) throw new Error('지원하지 않는 ZIP 압축 방식입니다.');
+      const item={name:e.name,buffer:data};
+      if(['wordOnly','meaning','two','plus'].includes(e.kind)){
+        if(out[e.kind]) out.auto.push(item);
+        else out[e.kind]=item;
+      }
+      else if(e.kind==='auto') out.auto.push(item);
+      else if(e.kind==='text') out.texts.push({name:e.name,text:td8.decode(data)});
+      out.names.push(e.name);
+      done++;
+      postProgress(id,'zip',0.25+done/Math.max(1,wanted.length)*0.75,'ZIP 추출 중');
+    }
+    postProgress(id,'zip',1,'ZIP 완료');
+    return out;
+  }
+  function analyzePCM(id, label, pcm, sampleRate, opts){
+    const frame = Math.max(256, Math.floor(sampleRate * 0.02));
+    const hop = Math.max(128, Math.floor(sampleRate * 0.01));
+    const minSil = Math.floor((opts.minSilenceMs/1000) * sampleRate / hop);
+    const keep = opts.keepMs / 1000;
+    const minSeg = opts.minSegmentMs / 1000;
+    const threshold = Math.pow(10, opts.thresholdDb / 20);
+    const totalFrames = Math.max(1, Math.floor((pcm.length - frame) / hop));
+    const active = new Uint8Array(totalFrames);
+    for(let i=0;i<totalFrames;i++){
+      const s = i*hop;
+      let sum=0, peak=0;
+      for(let j=0;j<frame;j+=4){ const v=pcm[s+j]||0; sum += v*v; const av=Math.abs(v); if(av>peak) peak=av; }
+      const rms=Math.sqrt(sum/(frame/4));
+      active[i] = (rms > threshold || peak > threshold*2.2) ? 1 : 0;
+      if((i&1023)===0) postProgress(id,label,i/totalFrames*0.82,'구간 분석 중');
+    }
+    const segs=[];
+    let inSeg=false, startFrame=0, lastActive=-1, silent=0;
+    for(let i=0;i<totalFrames;i++){
+      if(active[i]){
+        if(!inSeg){ inSeg=true; startFrame=i; }
+        lastActive=i; silent=0;
+      }else if(inSeg){
+        silent++;
+        if(silent>=minSil){
+          const st=Math.max(0, startFrame*hop/sampleRate - keep);
+          const en=Math.min(pcm.length/sampleRate, (lastActive*hop+frame)/sampleRate + keep);
+          if(en-st>=minSeg) segs.push({start:+st.toFixed(3), end:+en.toFixed(3), duration:+(en-st).toFixed(3)});
+          inSeg=false; silent=0; lastActive=-1;
+        }
+      }
+    }
+    if(inSeg && lastActive>=0){
+      const st=Math.max(0, startFrame*hop/sampleRate - keep);
+      const en=Math.min(pcm.length/sampleRate, (lastActive*hop+frame)/sampleRate + keep);
+      if(en-st>=minSeg) segs.push({start:+st.toFixed(3), end:+en.toFixed(3), duration:+(en-st).toFixed(3)});
+    }
+    for(let i=0;i<segs.length;i++) segs[i].gapAfter = i<segs.length-1 ? +(segs[i+1].start-segs[i].end).toFixed(3) : 1.8;
+    postProgress(id,label,1,'구간 완료');
+    return {segments:segs, duration:pcm.length/sampleRate};
+  }
+  self.onmessage = async ev => {
+    const {id,type} = ev.data;
+    try{
+      let result;
+      if(type==='zip') result = await readZip(id, ev.data.buffer, ev.data.day);
+      if(type==='analyze') result = analyzePCM(id, ev.data.label, ev.data.pcm, ev.data.sampleRate, ev.data.opts);
+      self.postMessage({id,ok:true,result});
+    }catch(err){ self.postMessage({id,ok:false,error:String(err&&err.message?err.message:err)}); }
+  };`;
+
+  function ensureWorker(){
+    if(worker) return worker;
+    worker = new Worker(URL.createObjectURL(new Blob([workerCode], {type:'text/javascript'})));
+    worker._seq = 1; worker._pending = new Map();
+    worker.onmessage = ev => {
+      const m = ev.data;
+      if(m.progress){ setProgress(m.key, m.value, m.text); return; }
+      const p = worker._pending.get(m.id);
+      if(!p) return;
+      worker._pending.delete(m.id);
+      m.ok ? p.resolve(m.result) : p.reject(new Error(m.error));
+    };
+    return worker;
+  }
+  function callWorker(type, payload, transfer){
+    const w = ensureWorker();
+    const id = w._seq++;
+    return new Promise((resolve,reject)=>{
+      w._pending.set(id,{resolve,reject});
+      w.postMessage({id,type,...payload}, transfer || []);
+    });
+  }
+
+
+  const asrWorkerCode = `
+  const MODEL_ID = 'onnx-community/whisper-base';
+  const MODEL_BASE = 'https://huggingface.co/onnx-community/whisper-base/resolve/main/';
+  const ONNX_URLS = [
+    MODEL_BASE + 'onnx/encoder_model.onnx',
+    MODEL_BASE + 'onnx/decoder_model.onnx',
+    MODEL_BASE + 'onnx/decoder_with_past_model.onnx'
+  ];
+  const SUPPORT_URLS = [
+    MODEL_BASE + 'config.json',
+    MODEL_BASE + 'generation_config.json',
+    MODEL_BASE + 'preprocessor_config.json',
+    MODEL_BASE + 'tokenizer.json',
+    MODEL_BASE + 'tokenizer_config.json',
+    MODEL_BASE + 'special_tokens_map.json'
+  ];
+  const MODEL_CACHE = 'voca-whisper-base-onnx-v16';
+  let transcriber = null;
+  let modelWarmupPromise = null;
+  let transformerModulePromise = null;
+  function postProgress(id, value, text){ self.postMessage({id, progress:true, key:'asr', value, text}); }
+  function baseName(url){ try{return decodeURIComponent(url.split('/').pop().split('?')[0]);}catch(e){return url;} }
+  function withTimeout(promise, ms, label){
+    let timer;
+    const timeout = new Promise(function(_, reject){ timer = setTimeout(function(){ reject(new Error(label + ' 시간이 너무 오래 걸립니다. 인터넷 연결 또는 브라우저 CORS를 확인해 주세요.')); }, ms); });
+    return Promise.race([promise, timeout]).finally(function(){ clearTimeout(timer); });
+  }
+  async function readResponseStream(res, id, start, span, label){
+    const total = Number(res.headers.get('content-length') || 0);
+    if(!res.body || !res.body.getReader){
+      await res.arrayBuffer();
+      postProgress(id, start + span, label + ' 완료');
+      return;
+    }
+    const reader = res.body.getReader();
+    let loaded = 0;
+    while(true){
+      const r = await reader.read();
+      if(r.done) break;
+      loaded += r.value ? r.value.byteLength : 0;
+      if(total){ postProgress(id, start + Math.min(1, loaded / total) * span, label + ' ' + Math.round(loaded / total * 100) + '%'); }
+      else { postProgress(id, Math.min(start + span * .92, start + span * (0.15 + (loaded % 7000000) / 7000000 * .75)), label + ' 다운로드 중'); }
+      await new Promise(function(resolve){ setTimeout(resolve, 0); });
+    }
+    postProgress(id, start + span, label + ' 완료');
+  }
+  async function fetchAndCache(url, id, start, span){
+    const label = baseName(url);
+    let cache = null;
+    try{ if(self.caches) cache = await caches.open(MODEL_CACHE); }catch(e){ cache = null; }
+    try{
+      if(cache){
+        const hit = await cache.match(url);
+        if(hit){ postProgress(id, start + span, label + ' 준비됨'); return; }
+      }
+    }catch(e){}
+    postProgress(id, start, label + ' 다운로드 시작');
+    const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    const timer = controller ? setTimeout(function(){ try{controller.abort();}catch(e){} }, 10 * 60 * 1000) : null;
+    try{
+      const res = await fetch(url, {mode:'cors', cache:'force-cache', signal: controller ? controller.signal : undefined});
+      if(!res.ok) throw new Error(label + ' 다운로드 실패: HTTP ' + res.status);
+      if(cache){ try{ cache.put(url, res.clone()).catch(function(){}); }catch(e){} }
+      await readResponseStream(res, id, start, span, label);
+    }finally{
+      if(timer) clearTimeout(timer);
+    }
+  }
+  async function warmupModelFiles(id){
+    if(modelWarmupPromise) return modelWarmupPromise;
+    modelWarmupPromise = (async function(){
+      postProgress(id, 0.01, 'Whisper ONNX 모델 다운로드 준비');
+      const urls = SUPPORT_URLS.concat(ONNX_URLS);
+      for(let i=0;i<urls.length;i++){
+        const start = 0.02 + (i / urls.length) * 0.22;
+        const span = 0.22 / urls.length;
+        await fetchAndCache(urls[i], id, start, span);
+      }
+      postProgress(id, 0.25, 'Whisper ONNX 모델 다운로드 완료');
+    })().catch(function(err){
+      modelWarmupPromise = null;
+      throw err;
+    });
+    return modelWarmupPromise;
+  }
+  async function loadTransformers(id){
+    if(transformerModulePromise) return transformerModulePromise;
+    transformerModulePromise = (async function(){
+      const url = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.7.2/dist/transformers.min.js';
+      try{
+        postProgress(id, 0.26, 'Transformers.js 불러오는 중');
+        return await withTimeout(import(/* @vite-ignore */ url), 90000, 'Transformers.js 로딩');
+      }catch(e){
+        throw new Error('Transformers.js를 불러오지 못했습니다: ' + (e && e.message ? e.message : e));
+      }
+    })().catch(function(err){ transformerModulePromise = null; throw err; });
+    return transformerModulePromise;
+  }
+  function normalizeAudio(x){
+    let peak = 0;
+    for(let i=0;i<x.length;i++){ const a=Math.abs(x[i]); if(a>peak) peak=a; }
+    if(peak > 1.0){ const y = new Float32Array(x.length); for(let i=0;i<x.length;i++) y[i]=x[i]/peak; return y; }
+    return x;
+  }
+  function resampleLinear(input, srcRate, dstRate){
+    if(srcRate === dstRate) return normalizeAudio(input);
+    const ratio = srcRate / dstRate;
+    const len = Math.max(1, Math.round(input.length / ratio));
+    const out = new Float32Array(len);
+    for(let i=0;i<len;i++){
+      const pos = i * ratio;
+      const p0 = Math.floor(pos);
+      const p1 = Math.min(input.length - 1, p0 + 1);
+      const t = pos - p0;
+      out[i] = (input[p0] || 0) * (1 - t) + (input[p1] || 0) * t;
+    }
+    return normalizeAudio(out);
+  }
+  function sliceSegment(pcm, sampleRate, seg){
+    const a = Math.max(0, Math.floor((seg.start || 0) * sampleRate));
+    const b = Math.min(pcm.length, Math.ceil((seg.end || 0) * sampleRate));
+    const pad = Math.floor(0.08 * sampleRate);
+    const start = Math.max(0, a - pad);
+    const end = Math.min(pcm.length, b + pad);
+    return resampleLinear(pcm.slice(start, end), sampleRate, 16000);
+  }
+  async function ensureTranscriber(id){
+    if(transcriber) return transcriber;
+    postProgress(id, 0.01, 'Whisper 모델 확인 중');
+    await warmupModelFiles(id);
+    const mod = await loadTransformers(id);
+    const pipeline = mod.pipeline;
+    const env = mod.env || {};
+    try{ env.allowLocalModels = false; env.allowRemoteModels = true; env.useBrowserCache = true; }catch(e){}
+    try{ env.remoteHost = 'https://huggingface.co'; env.remotePathTemplate = '{model}/resolve/main/{file}'; }catch(e){}
+    try{
+      if(env.backends && env.backends.onnx && env.backends.onnx.wasm){
+        env.backends.onnx.wasm.numThreads = 1;
+        env.backends.onnx.wasm.proxy = false;
+        env.backends.onnx.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.21.0/dist/';
+      }
+    }catch(e){}
+    postProgress(id, 0.29, 'Whisper 실행 준비 중');
+    transcriber = await withTimeout(pipeline('automatic-speech-recognition', MODEL_ID, {
+      device: 'wasm',
+      dtype: 'fp32',
+      revision: 'main',
+      progress_callback: function(p){
+        const name = p && (p.file || p.name || p.status) ? String(p.file || p.name || p.status) : '모델 준비 중';
+        const loaded = p && p.loaded && p.total ? Math.min(1, p.loaded / p.total) : 0;
+        postProgress(id, 0.30 + loaded * 0.18, name);
+      }
+    }), 8 * 60 * 1000, 'Whisper 실행 준비');
+    postProgress(id, 0.49, 'Whisper 준비 완료');
+    return transcriber;
+  }
+  function extractText(out){
+    if(!out) return '';
+    if(typeof out === 'string') return out;
+    if(Array.isArray(out)) return out.map(extractText).join(' ').trim();
+    if(out.text) return String(out.text);
+    if(out.chunks && Array.isArray(out.chunks)) return out.chunks.map(function(c){return c.text||'';}).join(' ');
+    return '';
+  }
+  self.onmessage = async function(ev){
+    const id = ev.data.id;
+    const type = ev.data.type;
+    try{
+      if(type === 'recognize'){
+        const tr = await ensureTranscriber(id);
+        const pcm = ev.data.pcm;
+        const sampleRate = ev.data.sampleRate || 44100;
+        const segments = ev.data.segments || [];
+        const language = ev.data.language || 'ko';
+        const out = [];
+        for(let i=0;i<segments.length;i++){
+          const audio = sliceSegment(pcm, sampleRate, segments[i]);
+          postProgress(id, 0.50 + (i / Math.max(1, segments.length)) * 0.47, '음성 내용 인식 중 ' + (i + 1) + '/' + segments.length);
+          const result = await tr(audio, { language: language, task:'transcribe', return_timestamps:false });
+          const text = extractText(result).replace(/<\|[^>]+\|>/g,'').replace(/\s+/g,' ').trim();
+          out.push(text);
+          self.postMessage({id:id, partial:true, index:i, text:text});
+          await new Promise(function(resolve){ setTimeout(resolve, 0); });
+        }
+        postProgress(id, 1, '음성 인식 완료');
+        self.postMessage({id:id, ok:true, result:out});
+      }
+    }catch(err){ self.postMessage({id:id, ok:false, error:String(err && err.message ? err.message : err)}); }
+  };
+  `;
+  let asrWorker;
+  function ensureAsrWorker(){
+    if(asrWorker) return asrWorker;
+    const asrBlobUrl = URL.createObjectURL(new Blob([asrWorkerCode], {type:'application/javascript'}));
+    asrWorker = new Worker(asrBlobUrl, {type:'module'});
+    asrWorker._seq = 1; asrWorker._pending = new Map();
+    asrWorker.onerror = err => {
+      const msg = err && err.message ? err.message : String(err || 'ASR Worker 오류');
+      for(const p of asrWorker._pending.values()) p.reject(new Error(msg));
+      asrWorker._pending.clear();
+      setStatus('음성 인식 워커 오류: ' + msg);
+    };
+    asrWorker.onmessage = ev => {
+      const m = ev.data;
+      if(m.progress){ setProgress(m.key || 'asr', m.value || 0, m.text || ''); return; }
+      const p = asrWorker._pending.get(m.id);
+      if(!p) return;
+      if(m.partial && p.partial){ p.partial(m.index, m.text); return; }
+      asrWorker._pending.delete(m.id);
+      m.ok ? p.resolve(m.result) : p.reject(new Error(m.error));
+    };
+    return asrWorker;
+  }
+  function callAsr(payload, transfer, partial){
+    const w = ensureAsrWorker();
+    const id = w._seq++;
+    return new Promise((resolve,reject)=>{
+      w._pending.set(id,{resolve,reject,partial});
+      w.postMessage({id,type:'recognize',...payload}, transfer || []);
+    });
+  }
+
+  function setStatus(t){ els.status.textContent = t || ''; }
+  function setReady(t){ els.ready.textContent = t; }
+  function showSkeleton(title='불러오는 중', sub='잠시만 기다려 주세요.') {
+    document.body.classList.add('mainSkeleton');
+    const card = document.querySelector('.scene.on .card');
+    if(card){
+      card.dataset.loadingTitle = title || '';
+      card.dataset.loadingSub = sub || '';
+    }
+    if(els.skeletonTitle) els.skeletonTitle.textContent = title || '';
+    if(els.skeletonSub) els.skeletonSub.textContent = sub || '';
+    setStatus((title || '') + (sub ? ' · ' + sub : ''));
+  }
+  function hideSkeleton(){
+    document.body.classList.remove('mainSkeleton');
+    const card = document.querySelector('.scene.on .card');
+    if(card){ delete card.dataset.loadingTitle; delete card.dataset.loadingSub; }
+  }
+  function setProgress(key, v, text){
+    if(bars[key]){
+      const pct = Math.round(Math.max(0,Math.min(1,v))*100);
+      bars[key][0].style.width = pct+'%'; bars[key][1].textContent = pct+'%';
+    }
+    if(text) setStatus(text);
+    const vals = ['zip','decode','two','plus','asr'].map(k => parseInt(bars[k][1].textContent)||0);
+    const all = Math.round(vals.reduce((a,b)=>a+b,0)/Math.max(1, vals.length));
+    bars.all[0].style.width = all+'%'; bars.all[1].textContent = all+'%';
+  }
+  function resetProgress(){ for(const k of Object.keys(bars)) setProgress(k,0); setStatus(''); }
+  function getAudioContext(){ if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); return audioCtx; }
+  function exactArrayBuffer(ab){
+    if(ab instanceof ArrayBuffer) return ab.slice(0);
+    const u = ab instanceof Uint8Array ? ab : new Uint8Array(ab);
+    return u.slice().buffer;
+  }
+  function findAscii(u, str){
+    const codes = [...str].map(c=>c.charCodeAt(0));
+    outer: for(let i=0;i<=u.length-codes.length;i++){
+      for(let j=0;j<codes.length;j++) if(u[i+j]!==codes[j]) continue outer;
+      return i;
+    }
+    return -1;
+  }
+  function findMp3Frame(u){
+    for(let i=0;i<u.length-1;i++){
+      if(u[i]===0xff && (u[i+1]&0xe0)===0xe0) return i;
+    }
+    return -1;
+  }
+  function cleanAudioBuffer(ab){
+    const u = new Uint8Array(ab);
+    let start = 0;
+    const id3 = findAscii(u,'ID3');
+    const frame = findMp3Frame(u);
+    if(id3 > 0 && (frame < 0 || id3 < frame)) start = id3;
+    else if(frame > 0) start = frame;
+    let end = u.length;
+    for(let i=Math.max(start+4096,0); i<u.length-4; i++){
+      if(u[i]===0x50 && u[i+1]===0x4b && (u[i+2]===0x03 || u[i+2]===0x01 || u[i+2]===0x05 || u[i+2]===0x07)) { end=i; break; }
+    }
+    while(end>start && u[end-1]===0) end--;
+    return u.slice(start,end).buffer;
+  }
+  async function decodeAudioRobust(raw){
+    const ctx = getAudioContext();
+    const original = exactArrayBuffer(raw);
+    const cleaned = cleanAudioBuffer(original);
+    const variants = [original];
+    if(cleaned.byteLength && cleaned.byteLength !== original.byteLength) variants.push(cleaned);
+    variants.push(await new Blob([original], {type:'audio/mpeg'}).arrayBuffer());
+    if(cleaned.byteLength) variants.push(await new Blob([cleaned], {type:'audio/mpeg'}).arrayBuffer());
+    let last;
+    for(const v of variants){
+      try{ return await ctx.decodeAudioData(v.slice(0)); }
+      catch(e){ last=e; }
+    }
+    throw new Error('오디오를 디코드할 수 없습니다. MP3 파일을 다시 압축하거나 파일명을 확인하세요.');
+  }
+  function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+  function shuffle(a){ const x=a.slice(); for(let i=x.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [x[i],x[j]]=[x[j],x[i]]; } return x; }
+  function norm(s){ return String(s||'').trim().toLowerCase().replace(/[’]/g,"'").replace(/[^a-z0-9'\-]/g,''); }
+  function cleanMeaningText(s){ return String(s||'').replace(/\\n/g,'\n').replace(/\\t/g,'\t').trim(); }
+  function normKo(s){
+    return cleanMeaningText(s).toLowerCase().replace(/[’]/g,"'")
+      .replace(/[\[\](){},.;:：，ㆍ·/|!?？!~`@#$%^&*_+=<>"'”“‘’]/g,'')
+      .trim();
+  }
+  function meaningPartsRaw(s){
+    return cleanMeaningText(s).split(/[,，;；/ㆍ·|]+|\n+/).map(x=>x.trim()).filter(Boolean);
+  }
+  function splitMeanings(s){ return meaningPartsRaw(s).map(x=>normKo(x)).filter(Boolean); }
+  function meaningMatches(ans, target){
+    const rawAns = cleanMeaningText(ans).toLowerCase().trim();
+    if(!rawAns || !target) return false;
+    const rawTargets = meaningPartsRaw(target).map(x=>x.toLowerCase().trim()).filter(Boolean);
+    if(rawTargets.some(t => rawAns === t)) return true;
+    const a = normKo(ans);
+    if(!a) return false;
+    const normalizedTargets = rawTargets.map(normKo).filter(Boolean);
+    return normalizedTargets.some(t => a === t);
+  }
+  function displayMeaning(s){ return meaningPartsRaw(s).join('\n'); }
+
+  function presetOpts(){
+    const v = els.cutPreset.value;
+    if(v==='wide') return {thresholdDb:-35,minSilenceMs:1900,keepMs:150,minSegmentMs:450};
+    if(v==='tight') return {thresholdDb:-38,minSilenceMs:950,keepMs:120,minSegmentMs:300};
+    return {thresholdDb:-35,minSilenceMs:1450,keepMs:140,minSegmentMs:350};
+  }
+
+  function normalizeMatchName(name){
+    return String(name||'')
+      .toLowerCase()
+      .replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0)-0xFEE0))
+      .replace(/[\s_\-–—.()\[\]{}]/g,'');
+  }
+  function hasDayName(name, day){
+    const d = String(day||'').trim().replace(/^0+/,'') || String(day||'').trim();
+    if(!d) return true;
+    const n = normalizeMatchName(name);
+    return new RegExp('day0*'+d+'(?!\\d)','i').test(n);
+  }
+  function classifyName(name){
+    const n = normalizeMatchName(name);
+    if(/(뜻만|의미만|한글만|한국어만|meaningonly|onlymeaning|onlymeanings|koreanonly|koonly)/i.test(n)) return 'meaningOnly';
+    if(/(단어만|영단어만|표제어만|wordonly|wordsonly|onlyword|onlywords|audioonlyword|단어2회|영단어2회)/i.test(n)) return 'wordOnly';
+    if(/(표제어\+?뜻|단어\+?뜻|뜻포함|뜻|meaning|meanings|wordmeaning|word\+meaning|ko|kor|korean)/i.test(n)) return 'meaning';
+    if(/(표제어?2회|2회|twice|2times|word2|words2|x2|repeat2|double)/i.test(n)) return 'two';
+    return '';
+  }
+  function setRawAudioKind(kind, item){
+    if(!item) return;
+    if(!rawAudio[kind]) rawAudio[kind] = item;
+    else {
+      rawAudio.auto = rawAudio.auto || [];
+      rawAudio.auto.push(item);
+    }
+  }
+  function mergeZipOut(out){
+    for(const k of ['wordOnly','meaningOnly','meaning','two','plus']) if(out && out[k]) setRawAudioKind(k, out[k]);
+    if(out && out.auto && out.auto.length){
+      rawAudio.auto = rawAudio.auto || [];
+      rawAudio.auto.push(...out.auto);
+    }
+    if(out && out.texts && out.texts.length){
+      const parsed = parseWords(out.texts.map(t=>t.text).join('\n'));
+      if(parsed.length) words = words.concat(parsed);
+    }
+  }
+  function assignAutoRawAudio(){
+    rawAudio.auto = (rawAudio.auto || []).filter(Boolean);
+    const explicit = new Set(['wordOnly','meaningOnly','meaning','two','plus'].map(k=>rawAudio[k]).filter(Boolean));
+    const unused = rawAudio.auto.filter(a => !explicit.has(a));
+    const bySmall = unused.slice().sort((a,b)=>(a.buffer?.byteLength||0)-(b.buffer?.byteLength||0));
+    const byLarge = unused.slice().sort((a,b)=>(b.buffer?.byteLength||0)-(a.buffer?.byteLength||0));
+    if(!rawAudio.wordOnly && bySmall[0]) rawAudio.wordOnly = bySmall[0];
+    if(!rawAudio.meaning && byLarge[0] && byLarge[0] !== rawAudio.wordOnly) rawAudio.meaning = byLarge[0];
+    if(!rawAudio.two && rawAudio.wordOnly) rawAudio.two = rawAudio.wordOnly;
+    if(!rawAudio.plus && rawAudio.meaning) rawAudio.plus = rawAudio.meaning;
+    if(!rawAudio.two && rawAudio.plus) rawAudio.two = rawAudio.plus;
+    if(!rawAudio.plus && rawAudio.two) rawAudio.plus = rawAudio.two;
+  }
+
+  function parseWords(text){
+    text = String(text||'')
+      .replace(/^\uFEFF/,'')
+      .replace(/\\r\\n|\\n|\\r/g, '\n')
+      .replace(/\\t/g, '\t')
+      .trim();
+    if(!text) return [];
+    try{
+      const j = JSON.parse(text);
+      if(Array.isArray(j)) return j.map(x => typeof x==='string'?{word:x.trim(),meaning:''}:{word:String(x.word||x.표제어||x.en||'').trim(),meaning:String(x.meaning||x.뜻||x.ko||'').trim()}).filter(x=>x.word);
+    }catch(e){}
+    return text.split(/\r?\n/).map(line=>{
+      line=line.trim(); if(!line) return null;
+      line=line.replace(/^\s*\d+[.)]?\s*/, '').trim();
+      const parts=line.split(/\t|,|，|\s+-\s+|\s+:\s+|：/);
+      let word=(parts[0]||'').trim();
+      let meaning=parts.slice(1).join(' ').trim();
+      if(!/^[A-Za-z]/.test(word)){
+        const m=line.match(/[A-Za-z][A-Za-z'’\-.]*(?:\s+[A-Za-z][A-Za-z'’\-.]*)?/);
+        if(m){ word=m[0].trim(); meaning=line.replace(m[0],'').replace(/^[-,:：\s]+/,'').trim(); }
+      }
+      return word ? {word, meaning} : null;
+    }).filter(Boolean);
+  }
+
+  async function loadFromSelection(files, day){
+    rawAudio = {auto:[]}; words = [];
+    const arr = [...files];
+    const names = [];
+    let processed = 0;
+    for(let i=0;i<arr.length;i++){
+      const f = arr[i];
+      const lower = String(f.name||'').toLowerCase();
+      if(/\.zip$/i.test(lower)){
+        setProgress('zip', Math.max(0.02, processed/Math.max(1,arr.length)), 'ZIP 읽는 중');
+        const buf = await f.arrayBuffer();
+        const out = await callWorker('zip',{buffer:buf, day},[buf]);
+        mergeZipOut(out);
+        if(out && out.names) names.push(...out.names.map(n=>f.name+' / '+n));
+      }else if(/\.(mp3|m4a|wav)$/i.test(lower) && hasDayName(f.name, day)){
+        const data = {name:f.name, buffer: await f.arrayBuffer()};
+        const kind = classifyName(f.name);
+        if(kind) setRawAudioKind(kind, data);
+        else rawAudio.auto.push(data);
+        names.push(f.name);
+      }else if(/\.(txt|csv|json)$/i.test(lower) && hasDayName(f.name, day)){
+        const parsed = parseWords(await f.text());
+        if(parsed.length) words = words.concat(parsed);
+        names.push(f.name);
+      }
+      processed++;
+      setProgress('zip', processed/Math.max(1,arr.length), '파일 확인 중');
+    }
+    assignAutoRawAudio();
+    if(words.length){
+      const seen = new Set();
+      words = words.filter(w=>{ const key=(w.word||'').toLowerCase(); if(!key || seen.has(key)) return false; seen.add(key); return true; });
+      els.wordText.value = words.map(x=>x.word+(x.meaning?'	'+x.meaning:'')).join('\n');
+    }
+    return names;
+  }
+
+
+  function removeLeadingSingleSpeech(coarse, fine){
+    const segs = (coarse || []).map(s => ({...s}));
+    if(!segs.length) return segs;
+    const first = segs[0];
+    if(first.start > 3.5) return segs;
+    const inside = (fine || []).filter(s => s.start >= first.start - 0.12 && s.end <= first.end + 0.12);
+    if(inside.length >= 2){
+      const one = inside[0], next = inside[1];
+      const gap = next.start - one.end;
+      if(one.duration <= 2.4 && gap >= 0.25 && gap <= 1.55){
+        first.start = +next.start.toFixed(3);
+        first.duration = +(first.end - first.start).toFixed(3);
+        if(first.duration < 0.3) segs.shift();
+        return segs;
+      }
+    }
+    if(inside.length === 1 && first.duration <= 2.25 && segs.length > 1){
+      segs.shift();
+    }
+    return segs;
+  }
+
+  async function decodeOne(kind){
+    if(!rawAudio[kind]) return null;
+    const labelName = kind==='wordOnly' ? '단어만' : kind==='meaningOnly' ? '뜻만' : kind==='meaning' ? '단어+뜻' : kind==='two' ? '표제어2회' : kind==='plus' ? '표제어+뜻' : kind;
+    setStatus(labelName+' 디코딩 중');
+    const ctx = getAudioContext();
+    const progressBase = (kind==='wordOnly'||kind==='two') ? 0.15 : 0.55;
+    setProgress('decode', progressBase);
+    const buf = await decodeAudioRobust(rawAudio[kind].buffer);
+    audioBuffers[kind] = buf;
+    setProgress('decode', Math.min(0.95, progressBase+0.30));
+    const pcm = buf.getChannelData(0).slice();
+    const opts = presetOpts();
+    const progressKey = (kind==='wordOnly'||kind==='two') ? 'two' : 'plus';
+    const res = await callWorker('analyze',{label:progressKey, pcm, sampleRate:buf.sampleRate, opts},[pcm.buffer]);
+    const pcmFine = buf.getChannelData(0).slice();
+    const fineOpts = {...opts, thresholdDb:Math.min(opts.thresholdDb, -40), minSilenceMs:300, keepMs:70, minSegmentMs:180};
+    const fine = await callWorker('analyze',{label:progressKey, pcm:pcmFine, sampleRate:buf.sampleRate, opts:fineOpts},[pcmFine.buffer]);
+    fineSegments[kind] = fine.segments || [];
+    segments[kind] = removeLeadingSingleSpeech(res.segments || [], fine.segments || []);
+    setProgress(progressKey, 1, '구간 완료');
+    return res;
+  }
+
+
+  function avgDuration(kind){
+    const arr = segments[kind] || [];
+    if(!arr.length) return Infinity;
+    return arr.reduce((a,b)=>a+(b.duration||Math.max(0,(b.end||0)-(b.start||0))),0)/arr.length;
+  }
+  function decodedKinds(){
+    return ['wordOnly','meaningOnly','two','plus','meaning'].filter(k => segments[k] && segments[k].length);
+  }
+  function updateAudioRoles(){
+    const kinds = decodedKinds();
+    if(!kinds.length) return;
+    const noMeaningOnly = kinds.filter(k => k !== 'meaningOnly');
+    if(segments.wordOnly && segments.wordOnly.length) audioRoles.wordOnly = 'wordOnly';
+    else audioRoles.wordOnly = (noMeaningOnly.length ? noMeaningOnly : kinds).slice().sort((a,b)=>avgDuration(a)-avgDuration(b))[0];
+    if(segments.meaning && segments.meaning.length) audioRoles.meaning = 'meaning';
+    else {
+      const rest = (noMeaningOnly.length ? noMeaningOnly : kinds).filter(k => k !== audioRoles.wordOnly);
+      audioRoles.meaning = (rest.length ? rest : (noMeaningOnly.length ? noMeaningOnly : kinds)).slice().sort((a,b)=>avgDuration(b)-avgDuration(a))[0];
+    }
+    if(segments.meaningOnly && segments.meaningOnly.length) audioRoles.meaningOnly = 'meaningOnly';
+    else audioRoles.meaningOnly = audioRoles.meaning;
+    if(els.testAudio && !els.testAudio.value) els.testAudio.value = 'wordOnly';
+  }
+  function mergeWordOnlyPairs(){
+    const wk = audioRoles.wordOnly, mk = audioRoles.meaning;
+    const wordSegs = segments[wk];
+    if(!wordSegs || !wordSegs.length) return;
+    const refSegs = segments[mk] && mk !== wk ? segments[mk] : null;
+    let shouldMerge = false;
+    let n = Math.floor(wordSegs.length / 2);
+    if(refSegs && refSegs.length){
+      const ratio = wordSegs.length / refSegs.length;
+      shouldMerge = ratio >= 1.65 && ratio <= 2.45;
+      n = Math.min(refSegs.length, Math.floor(wordSegs.length / 2));
+    }else{
+      const gaps = [];
+      for(let i=0;i<wordSegs.length-1;i++) gaps.push(Math.max(0, wordSegs[i+1].start - wordSegs[i].end));
+      const odd = gaps.filter((_,i)=>i%2===0).reduce((a,b)=>a+b,0)/Math.max(1,Math.ceil(gaps.length/2));
+      const even = gaps.filter((_,i)=>i%2===1).reduce((a,b)=>a+b,0)/Math.max(1,Math.floor(gaps.length/2));
+      shouldMerge = wordSegs.length >= 4 && even > odd * 1.35;
+    }
+    if(!shouldMerge || n < 1) return;
+    const merged = [];
+    for(let i=0;i<n;i++){
+      const a = wordSegs[i*2];
+      const b = wordSegs[i*2+1] || a;
+      const start = a.start;
+      const end = Math.max(a.end, b.end);
+      const next = wordSegs[(i+1)*2];
+      merged.push({
+        start:+start.toFixed(3),
+        end:+end.toFixed(3),
+        duration:+Math.max(0.05,end-start).toFixed(3),
+        gapAfter: next ? +(next.start-end).toFixed(3) : (refSegs && refSegs[i] ? refSegs[i].gapAfter : 1.8)
+      });
+    }
+    if(merged.length) segments[wk] = merged;
+  }
+  function deriveMeaningOnlySegments(){
+    const mk = audioRoles.meaning;
+    if(!mk || !segments[mk] || !segments[mk].length) return;
+    if(segments.meaningOnly && segments.meaningOnly.length && audioBuffers.meaningOnly) return;
+    const coarse = segments[mk];
+    const fine = fineSegments[mk] || [];
+    const wordSegs = segments[audioRoles.wordOnly] || [];
+    const derived = [];
+    const derivedParts = [];
+    for(let i=0;i<coarse.length;i++){
+      const p = coarse[i];
+      const inside = fine.filter(s => s.end > p.start + 0.02 && s.start < p.end - 0.02);
+      let start = p.start;
+      let end = p.end;
+      if(inside.length >= 3){
+        start = inside[2].start; // 표제어 2번 뒤부터 한국어 뜻
+        end = inside[inside.length-1].end;
+      }else if(inside.length === 2){
+        const estimated = wordSegs[i] ? Math.max(0.75, Math.min(wordSegs[i].duration + 0.08, p.duration * 0.62)) : Math.max(0.9, Math.min(2.2, p.duration * 0.45));
+        const byEstimate = p.start + estimated;
+        start = Math.max(inside[1].start, Math.min(byEstimate, p.end - 0.25));
+        end = inside[1].end;
+      }else{
+        const estimated = wordSegs[i] ? Math.max(0.75, Math.min(wordSegs[i].duration + 0.10, p.duration * 0.62)) : Math.max(1.05, Math.min(2.35, p.duration * 0.46));
+        start = Math.min(p.end - 0.25, p.start + estimated);
+      }
+      if(start < p.start) start = p.start;
+      if(end > p.end) end = p.end;
+      if(end - start < 0.25){ start = Math.min(p.end - 0.25, p.start + Math.max(0.75, p.duration * 0.42)); end = p.end; }
+      derived.push({start:+start.toFixed(3), end:+end.toFixed(3), duration:+Math.max(0.05,end-start).toFixed(3), gapAfter:p.gapAfter});
+      const parts = inside.filter(s => s.start >= start - 0.04 && s.end <= end + 0.04)
+        .map(s => ({start:+s.start.toFixed(3), end:+s.end.toFixed(3), duration:+s.duration.toFixed(3)}));
+      derivedParts.push(parts.length ? parts : [{start:+start.toFixed(3), end:+end.toFixed(3), duration:+Math.max(0.05,end-start).toFixed(3)}]);
+    }
+    if(derived.length){
+      segments.meaningOnly = derived;
+      segments.meaningParts = derivedParts;
+      audioBuffers.meaningOnly = audioBuffers[mk];
+      audioRoles.meaningOnly = 'meaningOnly';
+    }
+  }
+  function ensureDerivedBuffers(){
+    if(audioRoles.meaningOnly === 'meaningOnly' && !audioBuffers.meaningOnly){
+      const mk = audioRoles.meaning;
+      if(mk && audioBuffers[mk]) audioBuffers.meaningOnly = audioBuffers[mk];
+    }
+  }
+  function resolveAudioKind(choice){
+    if(choice === 'wordOnly') return audioRoles.wordOnly || 'wordOnly' || 'two';
+    if(choice === 'meaningOnly') return audioRoles.meaningOnly || 'meaningOnly' || audioRoles.meaning || audioRoles.wordOnly;
+    if(choice === 'meaning') return audioRoles.meaning || audioRoles.wordOnly || 'meaning' || 'plus';
+    return choice || audioRoles.wordOnly || 'wordOnly';
+  }
+  function getPromptMode(idx){
+    const it = items[idx] || {};
+    if(els.answerMode.value !== 'either') return els.answerMode.value;
+    if(it.word && it.meaning) return Math.random() < 0.5 ? 'word' : 'meaning';
+    if(it.meaning) return 'meaning';
+    return 'word';
+  }
+  function getQuizAudioKind(){
+    if(quiz && els.answerMode.value === 'either'){
+      return resolveAudioKind(quiz.currentPromptMode === 'meaning' ? 'meaningOnly' : 'wordOnly');
+    }
+    return resolveAudioKind(els.testAudio ? els.testAudio.value : 'wordOnly');
+  }
+
+
+  function ensureWordSlot(i){
+    while(words.length <= i) words.push({word:'', meaning:''});
+    if(!words[i]) words[i] = {word:'', meaning:''};
+    if(typeof words[i] === 'string') words[i] = {word:words[i], meaning:''};
+    return words[i];
+  }
+  function stripAsrJunk(s){
+    return String(s||'')
+      .replace(/<\|[^>]+\|>/g,' ')
+      .replace(/[“”]/g,'"').replace(/[‘’]/g,"'")
+      .replace(/\s+/g,' ')
+      .trim();
+  }
+  function simplifyRepeatedText(text){
+    const t = stripAsrJunk(text);
+    const parts = t.split(/\s+/).filter(Boolean);
+    if(parts.length >= 2){
+      const half = parts.length / 2;
+      if(Number.isInteger(half)){
+        const a = parts.slice(0, half).join(' ').toLowerCase();
+        const b = parts.slice(half).join(' ').toLowerCase();
+        if(a === b) return parts.slice(0, half).join(' ');
+      }
+      if(parts[0].toLowerCase() === parts[1].toLowerCase()) return parts[0];
+    }
+    const m = t.match(/[A-Za-z][A-Za-z'’\-.]*(?:\s+[A-Za-z][A-Za-z'’\-.]*)?/);
+    return m ? m[0].replace(/[’]/g,"'").trim() : t;
+  }
+  function cleanRecognizedMeaning(text){
+    return stripAsrJunk(text)
+      .replace(/^[\s,，.。;；:：ㆍ·/|!?？!~\-]+|[\s,，.。;；:：ㆍ·/|!?？!~\-]+$/g,'')
+      .replace(/\s*[,，;；/ㆍ·|]\s*/g,'\n')
+      .replace(/\n{2,}/g,'\n')
+      .trim();
+  }
+  function shouldFillWord(i, field){
+    const v = words[i] && words[i][field];
+    return !String(v||'').trim();
+  }
+  async function recognizeContents(){
+    if(!els.asrEnabled || !els.asrEnabled.checked){ setProgress('asr',1,'음성 인식 건너뜀'); return; }
+    if(!items.length){ setProgress('asr',1); return; }
+    showSkeleton('음성 내용 인식 중','단어와 뜻을 글자로 추출하고 있습니다.');
+    setStatus('음성 내용 인식 중');
+    try{
+      const wk = audioRoles.wordOnly;
+      const mk = audioRoles.meaningOnly;
+      let did = false;
+      if(wk && audioBuffers[wk] && segments[wk] && segments[wk].length){
+        did = true;
+        const pcm = audioBuffers[wk].getChannelData(0).slice();
+        const segs = segments[wk].slice(0, items.length);
+        const out = await callAsr({pcm, sampleRate:audioBuffers[wk].sampleRate, segments:segs, language:'en'}, [pcm.buffer], (i,text)=>{
+          const w = simplifyRepeatedText(text);
+          if(w && shouldFillWord(i,'word')){ ensureWordSlot(i).word = w; if(items[i]) items[i].word = w; updateListen(); }
+        });
+        out.forEach((text,i)=>{ const w=simplifyRepeatedText(text); if(w && shouldFillWord(i,'word')) ensureWordSlot(i).word=w; });
+      }
+      if(mk && audioBuffers[mk] && segments[mk] && segments[mk].length){
+        did = true;
+        const sourceParts = segments.meaningParts && segments.meaningParts.length ? segments.meaningParts : segments[mk].map(s=>[s]);
+        const flat = [], map = [];
+        for(let i=0;i<Math.min(items.length, sourceParts.length);i++){
+          const arr = Array.isArray(sourceParts[i]) && sourceParts[i].length ? sourceParts[i] : [segments[mk][i]];
+          for(const seg of arr){ if(seg){ flat.push(seg); map.push(i); } }
+        }
+        if(flat.length){
+          const pcm = audioBuffers[mk].getChannelData(0).slice();
+          const bucket = Array.from({length:items.length},()=>[]);
+          const out = await callAsr({pcm, sampleRate:audioBuffers[mk].sampleRate, segments:flat, language:'ko'}, [pcm.buffer], (j,text)=>{
+            const i = map[j];
+            const m = cleanRecognizedMeaning(text);
+            if(m){ bucket[i].push(m); if(shouldFillWord(i,'meaning')){ ensureWordSlot(i).meaning = bucket[i].join('\n'); if(items[i]) items[i].meaning = words[i].meaning; updateListen(); } }
+          });
+          out.forEach((text,j)=>{ const i=map[j]; const m=cleanRecognizedMeaning(text); if(m) bucket[i].push(m); });
+          for(let i=0;i<bucket.length;i++){
+            const meaning = bucket[i].filter(Boolean).join('\n').replace(/\n{2,}/g,'\n').trim();
+            if(meaning && shouldFillWord(i,'meaning')) ensureWordSlot(i).meaning = meaning;
+          }
+        }
+      }
+      if(!did) setProgress('asr',1,'인식할 오디오 없음');
+      if(words.length) els.wordText.value = words.map(x=>x.word+(x.meaning?'\t'+x.meaning:'')).join('\n');
+      setProgress('asr',1,'음성 인식 완료');
+      setStatus('음성 내용 인식 완료');
+    }catch(e){
+      console.warn(e);
+      setProgress('asr',1,'음성 인식 실패');
+      setStatus('음성 인식 실패: '+String(e.message||e));
+    }finally{
+      hideSkeleton();
+    }
+  }
+
+  function buildItems(){
+    updateAudioRoles();
+    mergeWordOnlyPairs();
+    updateAudioRoles();
+    deriveMeaningOnlySegments();
+    updateAudioRoles();
+    ensureDerivedBuffers();
+    const wk = audioRoles.wordOnly;
+    const mk = audioRoles.meaning;
+    const counts = [];
+    if(segments[wk]) counts.push(segments[wk].length);
+    if(segments[mk] && mk !== wk) counts.push(segments[mk].length);
+    if(!counts.length){
+      for(const k of decodedKinds()) counts.push(segments[k].length);
+    }
+    let count = counts.length ? Math.min(...counts) : 0;
+    if(count===Infinity) count=0;
+    items = Array.from({length:count},(_,i)=>({
+      idx:i,
+      two:segments[wk] && segments[wk][i],
+      plus:segments[mk] && segments[mk][i],
+      meaningOnly:segments[audioRoles.meaningOnly] && segments[audioRoles.meaningOnly][i],
+      word:words[i] && words[i].word || '',
+      meaning:words[i] && words[i].meaning || ''
+    }));
+    renderList();
+    updateListen();
+    updateQuizStats();
+    setReady(count ? count+'개 준비 완료' : '구간 없음');
+  }
+  function renderList(){
+    if(!items.length){ els.resultList.innerHTML=''; return; }
+    els.resultList.innerHTML = items.map((it,i)=>`<div class="item"><b>${i+1}</b><span>${it.word?escapeHtml(it.word):'<small>단어 '+(i+1)+'</small>'}</span><small>${it.meaning?escapeHtml(it.meaning):''}</small></div>`).join('');
+  }
+  function escapeHtml(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+  function formatSeg(it){ return ''; }
+
+  function updateListen(){
+    if(!items.length){
+      els.listenCount.textContent = '0 / 0';
+      els.listenTitle.textContent = '업로드';
+      els.listenSub.textContent = '';
+      return;
+    }
+    if(listenIndex < 0) listenIndex = 0;
+    if(listenIndex >= items.length) listenIndex = items.length - 1;
+    const it = items[listenIndex] || {};
+    els.listenCount.textContent = (listenIndex + 1) + ' / ' + items.length;
+    els.listenTitle.textContent = it.word || ('단어 ' + (listenIndex + 1));
+    els.listenSub.textContent = it.meaning ? displayMeaning(it.meaning) : (it.meaningOnly ? '카드를 뒤집으면 뜻 음성이 재생됩니다' : '뜻 정보 없음');
+    if(els.flashcard) els.flashcard.classList.remove('flipped');
+    saveSessionState();
+  }
+
+  function getGapFor(i){
+    if(!els.autoGap.checked) return parseInt(els.gapRange.value,10);
+    const base = segments[audioRoles.meaning] || segments.plus || segments.two;
+    const g = base && base[i] ? base[i].gapAfter*1000 : 1800;
+    return Math.max(300, Math.min(4500, g));
+  }
+  function updateGapLabel(){
+    els.gapRange.disabled = els.autoGap.checked;
+    els.gapLabel.textContent = els.autoGap.checked ? '자동' : (Number(els.gapRange.value)/1000).toFixed(1)+'초';
+  }
+  function stopAudio(bump=true){
+    if(bump) playToken++;
+    if(currentSource){ try{currentSource.stop();}catch(e){} currentSource=null; }
+  }
+  async function playSegment(kind, index){
+    ensureDerivedBuffers();
+    kind = resolveAudioKind(kind);
+    if((!segments[kind] || !segments[kind][index]) && kind !== audioRoles.meaningOnly) kind = audioRoles.meaningOnly;
+    if((!segments[kind] || !segments[kind][index]) && kind !== audioRoles.wordOnly) kind = audioRoles.wordOnly;
+    if((!segments[kind] || !segments[kind][index]) && kind !== audioRoles.meaning) kind = audioRoles.meaning;
+    const seg = segments[kind] && segments[kind][index];
+    const buf = audioBuffers[kind];
+    if(!seg || !buf) return;
+    stopAudio(false);
+    const ctx = getAudioContext();
+    if(ctx.state === 'suspended') await ctx.resume();
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.connect(ctx.destination);
+    currentSource = src;
+    const duration = Math.max(0.05, seg.end - seg.start);
+    src.start(0, seg.start, duration);
+    await new Promise(r=>{ src.onended = r; setTimeout(r, duration*1000+160); });
+    if(currentSource === src) currentSource = null;
+  }
+
+  async function playAll(){
+    if(!items.length) return;
+    stopAudio(); const token=playToken; const kind=resolveAudioKind(els.studyAudio.value);
+    const order=shuffle(items.map((_,i)=>i));
+    for(const i of order){
+      if(token!==playToken) break;
+      listenIndex=i; updateListen();
+      await playSegment(kind,i);
+      if(token!==playToken) break;
+      await sleep(getGapFor(i));
+    }
+  }
+
+  function repeatCount(){
+    const n = parseInt(els.repeatCount && els.repeatCount.value, 10);
+    return Math.max(1, Math.min(10, Number.isFinite(n) ? n : 1));
+  }
+  function isFinalResultMode(){ return !els.resultTiming || els.resultTiming.value !== 'immediate'; }
+  function shouldShowResults(){ return !!(quiz && (quiz.showResults || !isFinalResultMode())); }
+  function currentIdx(){ return quiz && quiz.pos < quiz.order.length ? quiz.order[quiz.pos] : -1; }
+  function canAdvanceCurrent(){ return !quiz || els.quizMode.value === 'audioOnly' || (quiz.currentHeard || 0) >= 1; }
+  function targetFor(it, mode){
+    if(!it) return '';
+    if(mode === 'meaning') return displayMeaning(it.meaning || '') || (it.meaningOnly ? '뜻 음성' : '');
+    if(mode === 'both') return [it.word, displayMeaning(it.meaning)].filter(Boolean).join(' / ');
+    if(mode === 'either') return [it.word, displayMeaning(it.meaning)].filter(Boolean).join(' / ');
+    return it.word || '';
+  }
+  function logIsWrong(r){ return !!(r && (r.manualWrong || (r.checked && !r.correct))); }
+  function recalcScore(){
+    if(!quiz) return {ok:0,no:0};
+    const no = quiz.log.filter(logIsWrong).length;
+    const ok = quiz.log.filter(r => r.checked && r.correct && !r.manualWrong).length;
+    quiz.ok = ok; quiz.no = no;
+    return {ok,no};
+  }
+
+  function updateQuizUi(){
+    const audioOnly = els.quizMode.value === 'audioOnly';
+    const mode = els.answerMode.value;
+    els.answerGrid.classList.toggle('hidden', audioOnly);
+    els.answerMode.disabled = audioOnly;
+    els.submitAnswer.textContent = audioOnly ? '다음' : (isFinalResultMode() ? '다음' : '확인');
+    els.answerGrid.classList.toggle('two', !audioOnly && mode === 'both');
+    els.meaningInput.classList.toggle('hidden', mode !== 'both');
+    if(mode === 'word') els.answerInput.placeholder = '단어 입력';
+    if(mode === 'meaning') els.answerInput.placeholder = '뜻 입력';
+    if(mode === 'either') els.answerInput.placeholder = '들리는 단어 또는 뜻 입력';
+    if(mode === 'both') els.answerInput.placeholder = '단어 입력';
+    if(els.pauseQuiz) els.pauseQuiz.innerHTML = quiz && quiz.paused ? (ICONS.play + '<span>다시 시작</span>') : (ICONS.pause + '<span>일시정지</span>');
+    if(els.submitAnswer) els.submitAnswer.disabled = !!(quiz && !canAdvanceCurrent() && !audioOnly);
+    if(els.skipAnswer) els.skipAnswer.disabled = !!(quiz && !canAdvanceCurrent() && !audioOnly);
+  }
+
+  function startQuiz(order){
+    const baseOrder = Array.isArray(order) && order.length ? order.slice() : items.map((_,i)=>i);
+    if(!items.length || !baseOrder.length) return;
+    stopAudio();
+    quiz = {
+      order: shuffle(baseOrder), pos: 0, ok: 0, no: 0, log: [], nextLogId: 1,
+      token: ++quizToken, paused: false, ended: false, showResults: false,
+      currentHeard: 0, currentPlaying: false, resumeReplayTwice: false, currentPromptMode: 'word'
+    };
+    els.quizFeedback.textContent='';
+    renderQuizLog();
+    updateQuizStats();
+    updateQuizUi();
+    nextQuiz(true);
+  }
+
+  function nextQuiz(autoPlay){
+    updateQuizUi();
+    if(!quiz) return;
+    if(quiz.pos>=quiz.order.length){
+      els.quizTitle.textContent='완료';
+      els.quizCount.textContent=quiz.order.length ? quiz.order.length+' / '+quiz.order.length : '0 / 0';
+      els.answerInput.value=''; els.meaningInput.value='';
+      if(els.quizMode.value === 'audioOnly' || !isFinalResultMode()) finishQuiz(false);
+      else { updateQuizStats(); renderQuizLog(); }
+      return;
+    }
+    quiz.currentHeard = 0;
+    quiz.currentPlaying = false;
+    quiz.token = ++quizToken;
+    const idx = quiz.order[quiz.pos];
+    const it = items[idx] || {};
+    quiz.currentPromptMode = getPromptMode(idx);
+    els.quizCount.textContent = (quiz.pos+1)+' / '+quiz.order.length;
+    if(els.answerMode.value === 'either'){
+      els.quizTitle.textContent = quiz.currentPromptMode === 'meaning' ? (displayMeaning(it.meaning) || '뜻 음성') : (it.word || ('단어 '+(idx+1))); 
+    }else{
+      els.quizTitle.textContent = '문제 '+(quiz.pos+1);
+    }
+    els.answerInput.value=''; els.meaningInput.value=''; els.quizFeedback.textContent='';
+    updateQuizStats(); renderQuizLog(); updateQuizUi();
+    if(els.quizMode.value !== 'audioOnly') setTimeout(()=>els.answerInput.focus(), 30);
+    if(autoPlay) playCurrentQuestion();
+  }
+
+  async function playCurrentQuestion(repeatOverride){
+    if(!quiz || quiz.pos>=quiz.order.length || quiz.ended) return;
+    const q = quiz, token = q.token, idx = q.order[q.pos];
+    const loops = Math.max(1, Math.min(10, repeatOverride || repeatCount()));
+    q.currentPlaying = true;
+    updateQuizUi();
+    for(let r=0;r<loops;r++){
+      if(quiz !== q || q.token !== token || q.paused || q.pos>=q.order.length || q.order[q.pos]!==idx) break;
+      await playSegment(getQuizAudioKind(), idx);
+      if(quiz !== q || q.token !== token || q.paused || q.pos>=q.order.length || q.order[q.pos]!==idx) break;
+      q.currentHeard = Math.max(q.currentHeard || 0, r+1);
+      updateQuizUi();
+      if(r < loops-1) await sleep(getGapFor(idx));
+    }
+    if(quiz === q && q.token === token) q.currentPlaying = false;
+    updateQuizUi();
+    if(quiz === q && q.token === token && !q.paused && els.quizMode.value === 'audioOnly' && els.audioAutoNext.checked && q.pos<q.order.length && q.order[q.pos]===idx){
+      addAudioLog();
+      q.pos++;
+      renderQuizLog(); updateQuizStats();
+      await sleep(getGapFor(idx));
+      if(quiz === q && q.token === token && !q.paused) nextQuiz(true);
+    }
+  }
+
+  function addAudioLog(){
+    if(!quiz || quiz.pos>=quiz.order.length) return;
+    const seq = quiz.pos + 1;
+    const idx = quiz.order[quiz.pos];
+    if(quiz.log.some(r => r.seq === seq && r.idx === idx)) return;
+    const it = items[idx] || {};
+    quiz.log.push({id:quiz.nextLogId++, seq, idx, ans:'', word:targetFor(it,'both') || ('단어 '+(idx+1)), correct:true, checked:false, manualWrong:false});
+  }
+
+  async function submitAnswer(skip){
+    if(!quiz || quiz.pos>=quiz.order.length || quiz.ended) return;
+    if(els.quizMode.value === 'audioOnly'){
+      if((quiz.currentHeard || 0) < 1 && !skip) return;
+      quiz.token = ++quizToken;
+      stopAudio();
+      addAudioLog();
+      const idx=quiz.order[quiz.pos];
+      quiz.pos++;
+      renderQuizLog(); updateQuizStats(); updateQuizUi();
+      await sleep(180);
+      nextQuiz(true);
+      return;
+    }
+    if(!canAdvanceCurrent()) return;
+    quiz.token = ++quizToken;
+    stopAudio();
+    const seq=quiz.pos+1;
+    const idx=quiz.order[quiz.pos], it=items[idx] || {}, ans=els.answerInput.value.trim(), ans2=els.meaningInput.value.trim();
+    const mode = els.answerMode.value;
+    const promptMode = mode === 'either' ? (quiz.currentPromptMode || 'word') : mode;
+    let correct = false, checked = true;
+    if(skip){ correct=false; }
+    else if(mode === 'word' || promptMode === 'word'){
+      checked = !!it.word; correct = checked && norm(ans) === norm(it.word);
+    }else if(mode === 'meaning' || promptMode === 'meaning'){
+      checked = !!it.meaning; correct = checked && meaningMatches(ans, it.meaning);
+    }else if(mode === 'both'){
+      checked = !!(it.word && it.meaning);
+      correct = checked && norm(ans) === norm(it.word) && meaningMatches(ans2, it.meaning);
+    }
+    const shownAnswer = mode === 'both' ? [ans, ans2].filter(Boolean).join(' / ') : ans;
+    const target = mode === 'either' ? targetFor(it, promptMode) : targetFor(it, mode);
+    quiz.log.push({id:quiz.nextLogId++, seq, idx, ans:shownAnswer, word:target, correct, checked, manualWrong:false});
+    recalcScore();
+    els.quizFeedback.textContent = !isFinalResultMode() && checked ? (correct ? '정답' : '정답: '+(target||'')) : '입력됨';
+    quiz.pos++;
+    renderQuizLog(); updateQuizStats(); updateQuizUi();
+    await sleep(isFinalResultMode() ? 180 : 520);
+    nextQuiz(true);
+  }
+
+  function finishQuiz(showMsg=true){
+    if(!quiz) return;
+    if(els.quizMode.value === 'audioOnly' && quiz.pos < quiz.order.length && (quiz.currentHeard||0) >= 1) addAudioLog();
+    quiz.token = ++quizToken;
+    stopAudio();
+    quiz.ended = true;
+    quiz.paused = false;
+    quiz.showResults = true;
+    recalcScore();
+    els.quizTitle.textContent = quiz.pos >= quiz.order.length ? '완료' : '시험 종료';
+    els.quizCount.textContent = quiz.log.length + ' / ' + quiz.order.length;
+    els.quizFeedback.textContent = showMsg ? '답안지' : '';
+    renderQuizLog(); updateQuizStats(); updateQuizUi();
+  }
+
+  function pauseQuiz(markReplay=false){
+    if(!quiz || quiz.ended) return;
+    if(quiz.paused){ if(markReplay) quiz.resumeReplayTwice = true; return; }
+    quiz.paused = true;
+    if(markReplay) quiz.resumeReplayTwice = true;
+    quiz.token = ++quizToken;
+    stopAudio();
+    els.quizFeedback.textContent = '일시정지';
+    updateQuizUi();
+  }
+  function resumeQuiz(){
+    if(!quiz || quiz.ended || !quiz.paused) return;
+    quiz.paused = false;
+    quiz.token = ++quizToken;
+    const repeat = quiz.resumeReplayTwice ? 2 : undefined;
+    quiz.resumeReplayTwice = false;
+    els.quizFeedback.textContent = '';
+    updateQuizUi();
+    if(quiz.pos < quiz.order.length) playCurrentQuestion(repeat);
+  }
+  function togglePauseQuiz(){
+    if(!quiz) return;
+    quiz.paused ? resumeQuiz() : pauseQuiz(false);
+  }
+
+  function updateQuizStats(){
+    if(!quiz){
+      els.scoreOk.textContent = 0; els.scoreNo.textContent = 0; els.scoreLeft.textContent = items.length; return;
+    }
+    const {ok,no} = recalcScore();
+    const show = shouldShowResults();
+    els.scoreOk.textContent = show ? ok : '-';
+    els.scoreNo.textContent = show ? no : '-';
+    els.scoreLeft.textContent = Math.max(0, quiz.order.length-quiz.pos);
+    saveSessionState();
+  }
+  function renderQuizLog(){
+    if(!quiz){ renderList(); return; }
+    if(!shouldShowResults()){
+      els.resultList.innerHTML = '';
+      return;
+    }
+    if(!quiz.log.length){ els.resultList.innerHTML = '<div class="quiet">답안지가 비어 있습니다.</div>'; return; }
+    els.resultList.innerHTML = quiz.log.slice().reverse().map(r=>{
+      const cls = logIsWrong(r) ? 'no' : (r.checked ? 'ok' : '');
+      const answer = r.ans ? escapeHtml(r.ans) : '듣기 완료';
+      const target = r.word ? escapeHtml(r.word) : '정답 없음';
+      const checked = r.manualWrong ? 'checked' : '';
+      return `<div class="historyItem resultRow" data-log="${r.id}"><b>문제 ${r.seq||''}</b><span>${answer}</span><small class="${cls}">${target}</small><button class="btn playMini" type="button" data-replay="${r.idx}" aria-label="다시 듣기">${ICONS.play}</button><label class="wrongMark"><input class="wrongCheck" type="checkbox" data-log="${r.id}" ${checked}>틀림</label></div>`;
+    }).join('');
+  }
+  function collectWrongIndexes(){
+    if(!quiz) return [];
+    const out=[];
+    for(const r of quiz.log){ if(logIsWrong(r) && !out.includes(r.idx)) out.push(r.idx); }
+    return out;
+  }
+  function retryWrongQuiz(){
+    const wrong = collectWrongIndexes();
+    if(!wrong.length){ els.quizFeedback.textContent = '틀린 문제가 없습니다'; return; }
+    startQuiz(wrong);
+  }
+  function replayQuizIndex(idx){
+    if(!Number.isFinite(idx)) return;
+    const cur = currentIdx();
+    if(quiz && !quiz.ended && els.quizMode.value === 'audioOnly' && idx !== cur && !quiz.paused) pauseQuiz(true);
+    stopAudio();
+    playSegment(getQuizAudioKind(), idx);
+  }
+
+
+  function openDB(){
+    return new Promise((resolve,reject)=>{
+      const req = indexedDB.open(DB_NAME, 1);
+      req.onupgradeneeded = () => req.result.createObjectStore(DB_STORE);
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error || new Error('저장소를 열 수 없습니다.'));
+    });
+  }
+  async function idbSet(key, value){
+    const db = await openDB();
+    return new Promise((resolve,reject)=>{
+      const tx = db.transaction(DB_STORE, 'readwrite');
+      tx.objectStore(DB_STORE).put(value, key);
+      tx.oncomplete = () => { db.close(); resolve(); };
+      tx.onerror = () => { db.close(); reject(tx.error); };
+    });
+  }
+  async function idbGet(key){
+    const db = await openDB();
+    return new Promise((resolve,reject)=>{
+      const tx = db.transaction(DB_STORE, 'readonly');
+      const req = tx.objectStore(DB_STORE).get(key);
+      req.onsuccess = () => resolve(req.result || null);
+      req.onerror = () => reject(req.error);
+      tx.oncomplete = () => db.close();
+    });
+  }
+  async function saveRawAudioSession(sig){
+    if(!sig) return;
+    const list = [];
+    for(const k of ['wordOnly','meaningOnly','meaning','two','plus']){
+      const r = rawAudio[k];
+      if(r && r.buffer) list.push({kind:k, name:r.name||'', buffer:r.buffer});
+    }
+    if(list.length) await idbSet('raw:'+sig, list);
+  }
+  async function loadRawAudioSession(sig){
+    const list = await idbGet('raw:'+sig);
+    if(!Array.isArray(list) || !list.length) return false;
+    rawAudio = {auto:[]};
+    for(const r of list) if(r && r.kind && r.buffer) rawAudio[r.kind] = {name:r.name||r.kind, buffer:r.buffer};
+    return true;
+  }
+  function activeSceneId(){
+    const sc = document.querySelector('.scene.on');
+    return sc ? sc.id : 'setup';
+  }
+  function setScene(id){
+    document.querySelectorAll('[data-scene]').forEach(b=>b.classList.toggle('on', b.dataset.scene===id));
+    document.querySelectorAll('.scene').forEach(s=>s.classList.toggle('on', s.id===id));
+  }
+  function cleanQuizForSave(q){
+    if(!q) return null;
+    return {
+      order:q.order||[], pos:q.pos||0, ok:q.ok||0, no:q.no||0, log:q.log||[], nextLogId:q.nextLogId||1,
+      ended:!!q.ended, showResults:!!q.showResults, paused:!!q.paused,
+      currentHeard:q.currentHeard||0, resumeReplayTwice:false, currentPromptMode:q.currentPromptMode||'word'
+    };
+  }
+  function saveSessionState(){
+    try{
+      if(!items.length && !quiz) return;
+      const sig = currentSig || fileSignature(String(els.dayInput.value||'').trim());
+      const data = {
+        v:14, sig, savedAt:Date.now(), day:String(els.dayInput.value||'').trim(), preset:els.cutPreset.value,
+        settings: (typeof getSettingsSnapshot === 'function' ? getSettingsSnapshot() : null),
+        segments, fineSegments, audioRoles, words, listenIndex, quiz:cleanQuizForSave(quiz), scene:activeSceneId()
+      };
+      localStorage.setItem(SESSION_KEY, JSON.stringify(data));
+    }catch(e){}
+  }
+  async function restoreSessionOnLoad(){
+    try{
+      showSkeleton('진행상황 불러오는 중','새로고침 전 상태를 복원하고 있습니다.');
+      const raw = localStorage.getItem(SESSION_KEY);
+      if(!raw) return;
+      const data = JSON.parse(raw);
+      if(!data || data.v !== 14 || !data.sig) return;
+      currentSig = data.sig;
+      if(data.day) els.dayInput.value = data.day;
+      if(data.preset) els.cutPreset.value = data.preset;
+      if(data.settings){
+        for(const id of Object.keys(data.settings)) writeControlValue(document.getElementById(id), data.settings[id]);
+      }
+      updateGapLabel();
+      segments = data.segments || {};
+      fineSegments = data.fineSegments || {};
+      audioRoles = data.audioRoles || audioRoles;
+      words = data.words || [];
+      const hasRaw = await loadRawAudioSession(data.sig);
+      if(!hasRaw) return;
+      const rawKinds = ['wordOnly','meaningOnly','two','plus','meaning'].filter(k=>rawAudio[k]);
+      setStatus('진행상황 불러오는 중');
+      setReady('복원 중');
+      for(const k of rawKinds) await decodeOnly(k);
+      ensureDerivedBuffers();
+      buildItems();
+      listenIndex = Math.max(0, Math.min(data.listenIndex||0, Math.max(0, items.length-1)));
+      updateListen();
+      if(data.quiz){
+        quiz = data.quiz;
+        quiz.token = ++quizToken;
+        quiz.currentPlaying = false;
+        if(!quiz.ended) quiz.paused = true;
+        renderQuizLog(); updateQuizStats(); updateQuizUi();
+      }
+      if(words.length) els.wordText.value = words.map(x=>x.word+(x.meaning?'\t'+x.meaning:'')).join('\n');
+      setScene(data.scene || (quiz ? 'quiz' : 'listen'));
+      els.fileName.textContent = '진행상황 복원됨';
+      setReady(items.length ? items.length+'개 복원됨' : '복원 완료');
+      setStatus('진행상황을 불러왔습니다.');
+    }catch(e){ console.warn(e); }
+    finally{ hideSkeleton(); }
+  }
+  function fileSignature(day){
+    return JSON.stringify({v:14, day:String(day||''), preset:els.cutPreset.value, files:selectedFiles.map(f=>({name:f.name,size:f.size,lastModified:f.lastModified||0})).sort((a,b)=>a.name.localeCompare(b.name))});
+  }
+  function loadAnalysisCache(sig){
+    try{
+      const raw = localStorage.getItem(CACHE_KEY);
+      if(!raw) return null;
+      const data = JSON.parse(raw);
+      if(data && data.sig === sig && data.segments) return data;
+    }catch(e){}
+    return null;
+  }
+  function saveAnalysisCache(sig){
+    try{
+      const data = {sig, savedAt:Date.now(), segments, fineSegments, audioRoles, words};
+      localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+    }catch(e){}
+  }
+  async function decodeOnly(kind){
+    if(!rawAudio[kind] || audioBuffers[kind]) return;
+    const ctx = getAudioContext();
+    audioBuffers[kind] = await decodeAudioRobust(rawAudio[kind].buffer);
+  }
+
+  async function analyze(){
+    if(!selectedFiles.length){ setStatus('파일을 선택하세요.'); return; }
+    resetProgress(); stopAudio(); setReady('분석 중');
+    audioBuffers={}; segments={}; fineSegments={}; items=[]; quiz=null; quizToken++; listenIndex=0; renderList(); updateListen(); updateQuizStats();
+    els.analyzeBtn.disabled=true;
+    try{
+      const day = String(els.dayInput.value || '').trim();
+      const sig = fileSignature(day);
+      await loadFromSelection(selectedFiles, day);
+      const rawKinds = ['wordOnly','meaningOnly','two','plus','meaning'].filter(k=>rawAudio[k]);
+      if(!rawKinds.length) throw new Error('해당 Day 회차 mp3를 찾지 못했습니다.');
+      currentSig = sig;
+      await saveRawAudioSession(sig);
+      setProgress('decode',0.05,'오디오 준비 중');
+      const seenBuffers = new Set();
+      for(const k of rawKinds){
+        const b = rawAudio[k] && rawAudio[k].buffer;
+        if(b && seenBuffers.has(b)) continue;
+        if(b) seenBuffers.add(b);
+        await decodeOne(k);
+      }
+      if(!segments.wordOnly && !segments.two) setProgress('two',1);
+      if(!segments.meaning && !segments.plus) setProgress('plus',1);
+      setProgress('decode',1,'분석 완료');
+      if(!words.length) words = parseWords(els.wordText.value);
+      buildItems();
+      await recognizeContents();
+      buildItems();
+      // 분석 캐시는 사용하지 않고, 새로고침 복원용 진행상황만 저장합니다.
+      setStatus('분석 완료');
+      saveSessionState();
+    }catch(err){ setStatus(String(err.message||err)); setReady('오류'); }
+    finally{ els.analyzeBtn.disabled=false; }
+  }
+
+  document.querySelectorAll('.tab').forEach(btn=>btn.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
+    btn.classList.add('on'); $('#'+btn.dataset.tab).classList.add('on');
+  }));
+  els.zipInput.addEventListener('change', e=>{
+    selectedFiles=[...e.target.files];
+    els.fileName.textContent = selectedFiles.length===1 ? selectedFiles[0].name : selectedFiles.length+'개 파일 선택됨';
+  });
+  els.analyzeBtn.addEventListener('click', analyze);
+  els.autoGap.addEventListener('change', updateGapLabel);
+  els.gapRange.addEventListener('input', updateGapLabel);
+  if(els.applyWords) els.applyWords.addEventListener('click',()=>{ applySettingsFromControls(true); });
+  if(els.flashcard) els.flashcard.addEventListener('click',()=>{
+    els.flashcard.classList.toggle('flipped');
+    const it = items[listenIndex] || {};
+    if(els.flashcard.classList.contains('flipped') && !it.meaning && it.meaningOnly){ stopAudio(); playSegment('meaningOnly', listenIndex); }
+  });
+  els.playOne.addEventListener('click',()=>{ stopAudio(); playSegment(resolveAudioKind(els.studyAudio.value), listenIndex); });
+  els.playAll.addEventListener('click',playAll);
+  els.stopListen.addEventListener('click',stopAudio);
+  els.prevBtn.addEventListener('click',()=>{ if(items.length){listenIndex=(listenIndex-1+items.length)%items.length; updateListen();} });
+  els.nextBtn.addEventListener('click',()=>{ if(items.length){listenIndex=(listenIndex+1)%items.length; updateListen();} });
+  els.shuffleBtn.addEventListener('click',()=>{ if(items.length){listenIndex=Math.floor(Math.random()*items.length); updateListen();} });
+  els.startQuiz.addEventListener('click',()=>startQuiz());
+  if(els.pauseQuiz) els.pauseQuiz.addEventListener('click',togglePauseQuiz);
+  els.stopQuiz.addEventListener('click',()=>finishQuiz(true));
+  if(els.finalSubmit) els.finalSubmit.addEventListener('click',()=>finishQuiz(true));
+  if(els.retryWrong) els.retryWrong.addEventListener('click',retryWrongQuiz);
+  els.quizPlay.addEventListener('click',()=>{
+    if(quiz && quiz.pos<quiz.order.length){
+      if(quiz.paused) resumeQuiz();
+      quiz.token = ++quizToken;
+      stopAudio();
+      playSegment(getQuizAudioKind(), quiz.order[quiz.pos]);
+    }
+  });
+  els.submitAnswer.addEventListener('click',()=>submitAnswer(false));
+  els.skipAnswer.addEventListener('click',()=>submitAnswer(true));
+  let lastWordSpaceAt = 0;
+  function handleWordDoubleSpace(e){
+    if(e.key !== ' ' || els.answerMode.value !== 'both' || els.meaningInput.classList.contains('hidden')){
+      if(e.key !== ' ') lastWordSpaceAt = 0;
+      return false;
+    }
+    const now = performance.now();
+    if(now - lastWordSpaceAt <= 360){
+      e.preventDefault();
+      const input = els.answerInput;
+      const start = input.selectionStart ?? input.value.length;
+      const end = input.selectionEnd ?? input.value.length;
+      const val = input.value;
+      if(start > 0 && val[start-1] === ' '){
+        input.value = val.slice(0,start-1) + val.slice(end);
+        const pos = start - 1;
+        input.setSelectionRange(pos,pos);
+      }
+      lastWordSpaceAt = 0;
+      els.meaningInput.focus();
+      return true;
+    }
+    lastWordSpaceAt = now;
+    return false;
+  }
+  els.answerInput.addEventListener('keydown',e=>{ if(handleWordDoubleSpace(e)) return; if(e.key==='Enter') submitAnswer(false); });
+  els.meaningInput.addEventListener('keydown',e=>{ if(e.key==='Enter') submitAnswer(false); });
+  els.resultList.addEventListener('click', e=>{
+    const btn = e.target.closest('[data-replay]');
+    if(btn){ replayQuizIndex(Number(btn.dataset.replay)); return; }
+  });
+  els.resultList.addEventListener('change', e=>{
+    const cb = e.target.closest('.wrongCheck');
+    if(!cb || !quiz) return;
+    const id = Number(cb.dataset.log);
+    const row = quiz.log.find(r=>r.id===id);
+    if(row){ row.manualWrong = cb.checked; recalcScore(); renderQuizLog(); updateQuizStats(); }
+  });
+  function settingsIsOpen(){ return document.body.classList.contains('settingsOpen'); }
+  els.quizMode.addEventListener('change',()=>{ if(!settingsIsOpen()) updateQuizUi(); });
+  els.answerMode.addEventListener('change',()=>{ if(!settingsIsOpen()) updateQuizUi(); });
+  if(els.resultTiming) els.resultTiming.addEventListener('change',()=>{ if(!settingsIsOpen()){ renderQuizLog(); updateQuizStats(); updateQuizUi(); } });
+  if(els.audioAutoNext) els.audioAutoNext.addEventListener('change',()=>{ if(!settingsIsOpen()) updateQuizUi(); });
+  if(els.repeatCount) els.repeatCount.addEventListener('change',()=>{ els.repeatCount.value = Math.max(1, Math.min(10, parseInt(els.repeatCount.value,10)||1)); });
+
+  const SETTINGS_IDS = ['studyAudio','testAudio','quizMode','answerMode','resultTiming','repeatCount','audioAutoNext','autoGap','gapRange','asrEnabled','wordText'];
+  let settingsSnapshot = null;
+  function readControlValue(el){ return el && el.type === 'checkbox' ? !!el.checked : (el ? el.value : ''); }
+  function writeControlValue(el, value){
+    if(!el) return;
+    if(el.type === 'checkbox') el.checked = !!value;
+    else el.value = value == null ? '' : value;
+  }
+  function getSettingsSnapshot(){
+    const out = {};
+    for(const id of SETTINGS_IDS){ const el = document.getElementById(id); out[id] = readControlValue(el); }
+    return out;
+  }
+  function restoreSettingsSnapshot(snap){
+    if(!snap) return;
+    for(const id of SETTINGS_IDS){ writeControlValue(document.getElementById(id), snap[id]); }
+    updateGapLabel();
+    renderQuizLog();
+    updateQuizStats();
+    updateQuizUi();
+  }
+  function closeSettingsRaw(){ document.body.classList.remove('settingsOpen'); }
+  function openSettings(){ settingsSnapshot = getSettingsSnapshot(); document.body.classList.add('settingsOpen'); updateGapLabel(); }
+  function cancelSettings(){ restoreSettingsSnapshot(settingsSnapshot); closeSettingsRaw(); }
+  async function applySettingsFromControls(keepOpen=false){
+    showSkeleton('변경사항 불러오는 중','설정을 반영하고 있습니다.');
+    await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+    try{
+    if(els.repeatCount) els.repeatCount.value = Math.max(1, Math.min(10, parseInt(els.repeatCount.value,10)||1));
+    updateGapLabel();
+    const parsed = parseWords(els.wordText.value);
+    words = parsed;
+    if(items.length || segments[audioRoles.wordOnly] || segments[audioRoles.meaning]) buildItems();
+    renderQuizLog();
+    updateQuizStats();
+    updateQuizUi();
+    try{ saveSessionState(); }catch(e){}
+    settingsSnapshot = getSettingsSnapshot();
+    setStatus('설정 적용 완료');
+    if(!keepOpen) closeSettingsRaw();
+    } finally { setTimeout(hideSkeleton, 120); }
+  }
+  const openSettingsBtn = document.getElementById('openSettings');
+  const closeSettingsBtn = document.getElementById('closeSettings');
+  const settingsOverlay = document.getElementById('settingsOverlay');
+  if(openSettingsBtn) openSettingsBtn.addEventListener('click', openSettings);
+  if(closeSettingsBtn) closeSettingsBtn.addEventListener('click', cancelSettings);
+  if(els.cancelSettings) els.cancelSettings.addEventListener('click', cancelSettings);
+  if(els.applySettings) els.applySettings.addEventListener('click',()=>applySettingsFromControls(false));
+  if(settingsOverlay) settingsOverlay.addEventListener('click', e=>{ if(e.target===settingsOverlay) cancelSettings(); });
+  document.querySelectorAll('[data-scene]').forEach(btn=>btn.addEventListener('click',()=>{
+    const scene = btn.dataset.scene;
+    document.querySelectorAll('[data-scene]').forEach(b=>b.classList.toggle('on', b===btn));
+    document.querySelectorAll('.scene').forEach(s=>s.classList.toggle('on', s.id===scene));
+  }));
+  initIcons();
+  window.addEventListener('beforeunload', saveSessionState);
+  updateGapLabel(); updateQuizUi();
+  restoreSessionOnLoad();
+})();
+</script>
+</body>
+</html>
