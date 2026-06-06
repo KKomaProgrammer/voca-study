@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>VOCA Audio Quiz v21</title>
+<title>VOCA Audio Quiz v22</title>
 <style>
   :root{
     --bg:#f4f7fb;--card:#fff;--ink:#0f172a;--muted:#64748b;--line:#e2e8f0;
@@ -37,6 +37,8 @@
   .filebox:active{transform:scale(.99)}
   .filebox b{display:block;font-size:18px;margin-bottom:6px;letter-spacing:-.03em}
   .filebox span{font-size:12px;color:var(--muted);font-weight:800}
+  .filebox.smallFilebox{padding:14px 12px;border-radius:18px;margin-top:8px;background:linear-gradient(135deg,#f8fafc,#fff)}
+  .filebox.smallFilebox b{font-size:14px;margin-bottom:4px}
   input[type=file]{display:none}
   input[type=number],input[type=text],select,textarea{width:100%;border:1px solid var(--line);border-radius:18px;padding:13px 14px;background:#fff;outline:none;color:#0f172a;font-weight:800}
   textarea{min-height:146px;resize:vertical;line-height:1.45;font-weight:650}
@@ -288,6 +290,9 @@
       </div>
       <div class="settingsGroup">
       <div class="switch"><input id="asrEnabled" type="checkbox" checked><span>음성에서 단어와 뜻 글자 추출</span></div>
+      <label class="filebox smallFilebox" for="onnxInput"><b id="onnxFileName">ONNX 모델 직접 업로드</b><span>encoder_model.onnx / decoder_model.onnx / decoder_with_past_model.onnx</span></label>
+      <input id="onnxInput" type="file" accept=".onnx,application/octet-stream" multiple />
+      <div class="status" id="onnxStatus"></div>
       </div>
       <div class="settingsGroup">
       <div class="miniGrid">
@@ -327,7 +332,7 @@
   const els = {
     zipInput: $('#zipInput'), fileName: $('#fileName'), dayInput: $('#dayInput'), analyzeBtn: $('#analyzeBtn'), cutPreset: $('#cutPreset'),
     status: $('#statusText'), ready: $('#readyPill'), timeEstimate: $('#timeEstimate'), wordText: $('#wordText'), applyWords: $('#applyWords'),
-    studyAudio: $('#studyAudio'), testAudio: $('#testAudio'), quizMode: $('#quizMode'), answerMode: $('#answerMode'), resultTiming: $('#resultTiming'), repeatCount: $('#repeatCount'), audioAutoNext: $('#audioAutoNext'), autoGap: $('#autoGap'), gapRange: $('#gapRange'), gapLabel: $('#gapLabel'), asrEnabled: $('#asrEnabled'), skeleton: $('#loadingSkeleton'), skeletonTitle: $('#skeletonTitle'), skeletonSub: $('#skeletonSub'),
+    studyAudio: $('#studyAudio'), testAudio: $('#testAudio'), quizMode: $('#quizMode'), answerMode: $('#answerMode'), resultTiming: $('#resultTiming'), repeatCount: $('#repeatCount'), audioAutoNext: $('#audioAutoNext'), autoGap: $('#autoGap'), gapRange: $('#gapRange'), gapLabel: $('#gapLabel'), asrEnabled: $('#asrEnabled'), onnxInput: $('#onnxInput'), onnxFileName: $('#onnxFileName'), onnxStatus: $('#onnxStatus'), skeleton: $('#loadingSkeleton'), skeletonTitle: $('#skeletonTitle'), skeletonSub: $('#skeletonSub'),
     listenCount: $('#listenCount'), listenTitle: $('#listenTitle'), listenSub: $('#listenSub'), flashcard: $('#flashcard'), playOne: $('#playOne'), playAll: $('#playAll'), stopListen: $('#stopListen'),
     prevBtn: $('#prevBtn'), nextBtn: $('#nextBtn'), shuffleBtn: $('#shuffleBtn'),
     quizCount: $('#quizCount'), quizTitle: $('#quizTitle'), answerGrid: $('#answerGrid'), answerInput: $('#answerInput'), meaningInput: $('#meaningInput'), quizFeedback: $('#quizFeedback'),
@@ -369,6 +374,11 @@
   const DB_STORE = 'kv';
   let currentSig = '';
   let audioRoles = { wordOnly: 'two', meaning: 'plus', meaningOnly: 'meaningOnly' };
+  const MODEL_BASE_OVERRIDE = (() => { try{ return new URL(location.href).searchParams.get('modelBase') || localStorage.getItem('voca_model_base') || ''; }catch(e){ return ''; } })();
+  const ONNX_FILE_NAMES = ['encoder_model.onnx','decoder_model.onnx','decoder_with_past_model.onnx'];
+  const ONNX_CACHE_NAME = 'voca-whisper-base-onnx-v23';
+  const ONNX_HF_BASE = 'https://huggingface.co/onnx-community/whisper-base/resolve/main/onnx/';
+  let selectedOnnxFiles = [];
 
   const workerCode = `
   const te = new TextEncoder();
@@ -544,16 +554,17 @@
   const asrWorkerCode = `
   const MODEL_ID = 'onnx-community/whisper-base';
   const MODEL_BASE = 'https://huggingface.co/onnx-community/whisper-base/resolve/main/';
+  const ONNX_DIR = MODEL_BASE + 'onnx/';
   const ONNX_FILES = ['encoder_model.onnx','decoder_model.onnx','decoder_with_past_model.onnx'];
-  const SUPPORT_URLS = [
-    MODEL_BASE + 'config.json',
-    MODEL_BASE + 'generation_config.json',
-    MODEL_BASE + 'preprocessor_config.json',
-    MODEL_BASE + 'tokenizer.json',
-    MODEL_BASE + 'tokenizer_config.json',
-    MODEL_BASE + 'special_tokens_map.json'
-  ];
-  const MODEL_CACHE = 'voca-whisper-base-onnx-v21';
+  const SUPPORT_FILES = ['config.json','generation_config.json','preprocessor_config.json','tokenizer.json','tokenizer_config.json','special_tokens_map.json'];
+  const SUPPORT_URLS = SUPPORT_FILES.map(function(f){ return MODEL_BASE + f; });
+  const DRIVE_ONNX_URLS = {
+    'decoder_with_past_model.onnx': 'https://drive.google.com/uc?export=download&id=14BvM2HMifJp9XHYpKcJt_ZtWZei55LM5',
+    'encoder_model.onnx': 'https://drive.google.com/uc?export=download&id=1WimtnB3eBz5RCZ22WMkI0QON0cLEWmdr',
+    'decoder_model.onnx': 'https://drive.google.com/uc?export=download&id=1k-vdNjw8xdwWenqpJ-W6tnfW1CxcMRWC'
+  };
+  const MODEL_CACHE = 'voca-whisper-base-onnx-v23';
+  let CUSTOM_MODEL_BASE = '';
   let transcriber = null;
   let modelWarmupPromise = null;
   let transformerModulePromise = null;
@@ -581,6 +592,24 @@
     try{ return new URL(path, PAGE_BASE_URL || './').href; }
     catch(e){ return path; }
   }
+  function normalizeUrlBase(base){
+    base = String(base || '').trim();
+    if(!base) return '';
+    return base.endsWith('/') ? base : base + '/';
+  }
+  function setCustomModelBase(base){ CUSTOM_MODEL_BASE = normalizeUrlBase(base); }
+  function customCandidates(file){
+    const b = normalizeUrlBase(CUSTOM_MODEL_BASE);
+    if(!b) return [];
+    const arr = [];
+    try{ arr.push(new URL(file, b).href); }catch(e){ arr.push(b + file); }
+    if(file.indexOf('onnx/') !== 0){ try{ arr.push(new URL('onnx/' + file, b).href); }catch(e){ arr.push(b + 'onnx/' + file); } }
+    return Array.from(new Set(arr));
+  }
+  function driveCandidates(file){
+    const url = DRIVE_ONNX_URLS[file];
+    return url ? [url] : [];
+  }
   function baseName(url){ try{return decodeURIComponent(String(url).split('/').pop().split('?')[0]);}catch(e){return String(url||'');} }
   function isOnnxFileName(name){ return ONNX_FILES.indexOf(name) >= 0; }
   function getOnnxFile(input){
@@ -589,6 +618,25 @@
     return isOnnxFileName(name) ? name : '';
   }
   function localCandidates(file){ return [file, 'onnx/' + file, 'models/' + file, 'models/onnx/' + file]; }
+  function hfOnnxUrl(file){ return ONNX_DIR + file; }
+  function cacheKeyFor(url){
+    const name = baseName(url);
+    if(isOnnxFileName(name)) return hfOnnxUrl(name);
+    return url;
+  }
+  async function runLimited(tasks, limit){
+    const results = new Array(tasks.length);
+    let next = 0;
+    async function runner(){
+      while(next < tasks.length){
+        const i = next++;
+        results[i] = await tasks[i]();
+      }
+    }
+    const n = Math.max(1, Math.min(limit || 1, tasks.length));
+    await Promise.all(Array.from({length:n}, runner));
+    return results;
+  }
   function withTimeout(promise, ms, label){
     let timer;
     const timeout = new Promise(function(_, reject){ timer = setTimeout(function(){ reject(new Error(label + ' 시간이 너무 오래 걸립니다. 인터넷 연결 또는 GitHub Pages 파일 경로를 확인해 주세요.')); }, ms); });
@@ -619,12 +667,13 @@
     postProgress(id, start + span, label + ' 완료');
   }
   async function openCache(){ try{ return self.caches ? await caches.open(MODEL_CACHE) : null; }catch(e){ return null; } }
-  async function fetchAndCacheRemote(url, id, start, span){
+  async function fetchAndCacheRemote(url, id, start, span, cacheKey){
     const label = baseName(url);
+    const key = cacheKey || cacheKeyFor(url);
     const cache = await openCache();
     try{
       if(cache){
-        const hit = await cache.match(url);
+        const hit = await cache.match(key);
         if(hit){ postProgress(id, start + span, label + ' 준비됨'); return; }
       }
     }catch(e){}
@@ -634,7 +683,7 @@
     try{
       const res = await originalFetch(url, {mode:'cors', cache:'force-cache', signal: controller ? controller.signal : undefined});
       if(!res.ok) throw new Error(label + ' 다운로드 실패: HTTP ' + res.status);
-      if(cache){ try{ cache.put(url, res.clone()).catch(function(){}); }catch(e){} }
+      if(cache){ try{ cache.put(key, res.clone()).catch(function(){}); }catch(e){} }
       await readResponseStream(res, id, start, span, label);
     }finally{ if(timer) clearTimeout(timer); }
   }
@@ -660,12 +709,26 @@
   async function fetchOnnxLocalFirst(file, id, start, span){
     const local = await tryLocalOnnx(file, id, start, span, false);
     if(local){ postProgress(id, start + span, file + ' 로컬 사용'); return; }
-    await fetchAndCacheRemote(MODEL_BASE + 'onnx/' + file, id, start, span);
+    const key = hfOnnxUrl(file);
+    const mirrors = customCandidates(file).concat(customCandidates('onnx/' + file), driveCandidates(file));
+    for(let i=0;i<mirrors.length;i++){
+      try{
+        await fetchAndCacheRemote(mirrors[i], id, start, span, key);
+        postProgress(id, start + span, file + (i < mirrors.length - driveCandidates(file).length ? ' Cloudflare/R2 사용' : ' Google Drive 사용'));
+        return;
+      }catch(e){ if(i === mirrors.length - 1){} }
+    }
+    await fetchAndCacheRemote(key, id, start, span, key);
   }
   self.fetch = async function(input, init){
     const url = typeof input === 'string' ? input : (input && input.url ? input.url : String(input || ''));
     const file = getOnnxFile(input);
     if(file){
+      const key = hfOnnxUrl(file);
+      try{
+        const cache = await openCache();
+        if(cache){ const hit = await cache.match(key); if(hit) return hit.clone(); }
+      }catch(e){}
       try{
         const local = await tryLocalOnnx(file, 0, 0, 0, true);
         if(local){
@@ -673,12 +736,16 @@
           if(res.ok) return res;
         }
       }catch(e){}
+      const mirrors = customCandidates(file).concat(customCandidates('onnx/' + file), driveCandidates(file));
+      for(let i=0;i<mirrors.length;i++){
+        try{ const res = await originalFetch(mirrors[i], {mode:'cors', cache:'force-cache'}); if(res.ok) return res; }catch(e){}
+      }
     }
     try{
       if(url && url.indexOf(MODEL_BASE) === 0){
         const cache = await openCache();
         if(cache){
-          const hit = await cache.match(url);
+          const hit = await cache.match(cacheKeyFor(url));
           if(hit) return hit.clone();
         }
       }
@@ -688,15 +755,15 @@
   async function warmupModelFiles(id){
     if(modelWarmupPromise) return modelWarmupPromise;
     modelWarmupPromise = (async function(){
-      postProgress(id, 0.01, 'Whisper 모델 파일 준비 중');
+      postProgress(id, 0.01, 'Whisper 모델 파일 병렬 준비 중');
       const supportSpan = 0.10 / SUPPORT_URLS.length;
-      for(let i=0;i<SUPPORT_URLS.length;i++){
-        await fetchAndCacheRemote(SUPPORT_URLS[i], id, 0.02 + i * supportSpan, supportSpan);
-      }
+      await runLimited(SUPPORT_URLS.map(function(url, i){
+        return function(){ return fetchAndCacheRemote(url, id, 0.02 + i * supportSpan, supportSpan, url); };
+      }), 4);
       const onnxSpan = 0.14 / ONNX_FILES.length;
-      for(let i=0;i<ONNX_FILES.length;i++){
-        await fetchOnnxLocalFirst(ONNX_FILES[i], id, 0.13 + i * onnxSpan, onnxSpan);
-      }
+      await runLimited(ONNX_FILES.map(function(file, i){
+        return function(){ return fetchOnnxLocalFirst(file, id, 0.13 + i * onnxSpan, onnxSpan); };
+      }), 3);
       postProgress(id, 0.28, 'Whisper 모델 파일 준비 완료');
     })().catch(function(err){ modelWarmupPromise = null; throw err; });
     return modelWarmupPromise;
@@ -751,12 +818,12 @@
     try{ env.remoteHost = 'https://huggingface.co'; env.remotePathTemplate = '{model}/resolve/main/'; }catch(e){}
     try{
       if(env.backends && env.backends.onnx && env.backends.onnx.wasm){
-        env.backends.onnx.wasm.numThreads = 1;
+        const hw = (self.navigator && self.navigator.hardwareConcurrency) ? self.navigator.hardwareConcurrency : 2;
+        const threads = self.crossOriginIsolated ? Math.max(1, Math.min(4, hw - 1)) : 1;
+        env.backends.onnx.wasm.numThreads = threads;
         env.backends.onnx.wasm.proxy = false;
-        // wasmPaths를 강제로 onnxruntime-web CDN에 고정하면 Transformers.js 내부 ORT 버전과
-        // WASM 바이너리 버전이 어긋나 _OrtGetInputOutputMetadata 오류가 날 수 있습니다.
-        // 따라서 Transformers.js가 자기 버전에 맞는 WASM을 자동으로 고르게 둡니다.
         try{ delete env.backends.onnx.wasm.wasmPaths; }catch(_){ env.backends.onnx.wasm.wasmPaths = undefined; }
+        postProgress(id, 0.305, threads > 1 ? ('WASM 병렬 처리 ' + threads + '스레드') : 'WASM 단일 스레드 준비');
       }
     }catch(e){}
     postProgress(id, 0.31, 'Whisper 실행 준비 중');
@@ -785,6 +852,7 @@
     const id = ev.data.id;
     const type = ev.data.type;
     if(ev.data.pageBaseUrl) setPageBase(ev.data.pageBaseUrl);
+    if(ev.data.modelBaseOverride !== undefined) setCustomModelBase(ev.data.modelBaseOverride);
     try{
       if(type === 'recognize'){
         const tr = await ensureTranscriber(id);
@@ -842,8 +910,57 @@
     const id = w._seq++;
     return new Promise((resolve,reject)=>{
       w._pending.set(id,{resolve,reject,partial});
-      w.postMessage({id,type:'recognize',pageBaseUrl:new URL('./', location.href).href,...payload}, transfer || []);
+      w.postMessage({id,type:'recognize',pageBaseUrl:new URL('./', location.href).href,modelBaseOverride:MODEL_BASE_OVERRIDE,...payload}, transfer || []);
     });
+  }
+
+
+  function normalizeOnnxName(name){
+    const lower = String(name || '').toLowerCase();
+    return ONNX_FILE_NAMES.find(n => n.toLowerCase() === lower) || '';
+  }
+  function onnxCacheUrl(name){ return ONNX_HF_BASE + name; }
+  async function cacheUploadedOnnxFiles(files, silent=false){
+    const valid = [];
+    const seen = new Set();
+    for(const f of [...(files || [])]){
+      const name = normalizeOnnxName(f.name);
+      if(name && !seen.has(name)){ valid.push({name, file:f}); seen.add(name); }
+    }
+    selectedOnnxFiles = valid;
+    if(els.onnxFileName){
+      els.onnxFileName.textContent = valid.length ? ('ONNX '+valid.length+'/3개 선택됨') : 'ONNX 모델 직접 업로드';
+    }
+    if(!valid.length){
+      if(els.onnxStatus && !silent) els.onnxStatus.textContent = '필요한 파일명: encoder_model.onnx, decoder_model.onnx, decoder_with_past_model.onnx';
+      return 0;
+    }
+    if(!('caches' in window)){
+      if(els.onnxStatus) els.onnxStatus.textContent = '이 브라우저는 모델 저장소를 지원하지 않습니다.';
+      return 0;
+    }
+    const cache = await caches.open(ONNX_CACHE_NAME);
+    let saved = 0;
+    for(const item of valid){
+      await new Promise(resolve => setTimeout(resolve, 0));
+      await cache.put(onnxCacheUrl(item.name), new Response(item.file, {headers:{'content-type':'application/octet-stream','x-voca-source':'user-upload'}}));
+      saved++;
+      if(els.onnxStatus) els.onnxStatus.textContent = 'ONNX 모델 저장 중 '+saved+'/'+valid.length;
+    }
+    if(els.onnxStatus) els.onnxStatus.textContent = '업로드한 ONNX 모델 '+saved+'개 저장됨. 없는 파일만 자동 다운로드합니다.';
+    return saved;
+  }
+  async function refreshOnnxCacheStatus(){
+    if(!('caches' in window) || !els.onnxStatus) return;
+    try{
+      const cache = await caches.open(ONNX_CACHE_NAME);
+      let count = 0;
+      for(const name of ONNX_FILE_NAMES){ if(await cache.match(onnxCacheUrl(name))) count++; }
+      if(count){
+        els.onnxFileName.textContent = '저장된 ONNX '+count+'/3개';
+        els.onnxStatus.textContent = count === 3 ? '저장된 ONNX 모델을 우선 사용합니다.' : '저장된 ONNX '+count+'개 사용, 없는 파일만 다운로드합니다.';
+      }
+    }catch(e){}
   }
 
   function setStatus(t){ els.status.textContent = t || ''; }
@@ -1304,20 +1421,26 @@
       const mk = audioRoles.meaningOnly;
       let did = false;
       if(wk && audioBuffers[wk] && segments[wk] && segments[wk].length){
-        did = true;
-        const pcm = audioBuffers[wk].getChannelData(0).slice();
-        const segs = segments[wk].slice(0, items.length);
-        const out = await callAsr({pcm, sampleRate:audioBuffers[wk].sampleRate, segments:segs, language:'en'}, [pcm.buffer], (i,text)=>{
-          const w = simplifyRepeatedText(text);
-          if(w && shouldFillWord(i,'word')){ ensureWordSlot(i).word = w; if(items[i]) items[i].word = w; scheduleContentRender(); }
-        });
-        out.forEach((text,i)=>{ const w=simplifyRepeatedText(text); if(w && shouldFillWord(i,'word')) ensureWordSlot(i).word=w; });
+        const pairs = segments[wk].slice(0, items.length).map((s,i)=>({s,i})).filter(p=>shouldFillWord(p.i,'word'));
+        if(pairs.length){
+          did = true;
+          const pcm = audioBuffers[wk].getChannelData(0).slice();
+          const segs = pairs.map(p=>p.s);
+          const map = pairs.map(p=>p.i);
+          const out = await callAsr({pcm, sampleRate:audioBuffers[wk].sampleRate, segments:segs, language:'en'}, [pcm.buffer], (j,text)=>{
+            const i = map[j];
+            const w = simplifyRepeatedText(text);
+            if(w && shouldFillWord(i,'word')){ ensureWordSlot(i).word = w; if(items[i]) items[i].word = w; scheduleContentRender(); }
+          });
+          out.forEach((text,j)=>{ const i=map[j]; const w=simplifyRepeatedText(text); if(w && shouldFillWord(i,'word')) ensureWordSlot(i).word=w; });
+        }
       }
       if(mk && audioBuffers[mk] && segments[mk] && segments[mk].length){
         did = true;
         const sourceParts = segments.meaningParts && segments.meaningParts.length ? segments.meaningParts : segments[mk].map(s=>[s]);
         const flat = [], map = [];
         for(let i=0;i<Math.min(items.length, sourceParts.length);i++){
+          if(!shouldFillWord(i,'meaning')) continue;
           const arr = Array.isArray(sourceParts[i]) && sourceParts[i].length ? sourceParts[i] : [segments[mk][i]];
           for(const seg of arr){ if(seg){ flat.push(seg); map.push(i); } }
         }
@@ -1865,6 +1988,7 @@
       setProgress('decode',1,'분석 완료');
       if(!words.length) words = parseWords(els.wordText.value);
       buildItems();
+      if(selectedOnnxFiles.length) await cacheUploadedOnnxFiles(selectedOnnxFiles.map(x=>x.file), true);
       await recognizeContents();
       buildItems();
       // 분석 캐시는 사용하지 않고, 새로고침 복원용 진행상황만 저장합니다.
@@ -1882,6 +2006,13 @@
   els.zipInput.addEventListener('change', e=>{
     selectedFiles=[...e.target.files];
     els.fileName.textContent = selectedFiles.length===1 ? selectedFiles[0].name : selectedFiles.length+'개 파일 선택됨';
+  });
+  if(els.onnxInput) els.onnxInput.addEventListener('change', async e=>{
+    try{
+      await cacheUploadedOnnxFiles(e.target.files || []);
+    }catch(err){
+      if(els.onnxStatus) els.onnxStatus.textContent = 'ONNX 저장 실패: '+String(err.message||err);
+    }
   });
   els.analyzeBtn.addEventListener('click', analyze);
   els.autoGap.addEventListener('change', updateGapLabel);
