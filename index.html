@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>VOCA Audio Quiz v19</title>
+<title>VOCA Audio Quiz v21</title>
 <style>
   :root{
     --bg:#f4f7fb;--card:#fff;--ink:#0f172a;--muted:#64748b;--line:#e2e8f0;
@@ -553,13 +553,21 @@
     MODEL_BASE + 'tokenizer_config.json',
     MODEL_BASE + 'special_tokens_map.json'
   ];
-  const MODEL_CACHE = 'voca-whisper-base-onnx-v19';
+  const MODEL_CACHE = 'voca-whisper-base-onnx-v21';
   let transcriber = null;
   let modelWarmupPromise = null;
   let transformerModulePromise = null;
   let PAGE_BASE_URL = '';
   const localAvailable = Object.create(null);
   const originalFetch = self.fetch.bind(self);
+  try{
+    const _warn = console.warn.bind(console);
+    console.warn = function(){
+      const first = arguments && arguments.length ? String(arguments[0] || '') : '';
+      if(first.indexOf('Unable to determine content-length') >= 0) return;
+      return _warn.apply(console, arguments);
+    };
+  }catch(_){}
 
   function postProgress(id, value, text){ self.postMessage({id:id, progress:true, key:'asr', value:value, text:text}); }
   function setPageBase(url){
@@ -745,7 +753,10 @@
       if(env.backends && env.backends.onnx && env.backends.onnx.wasm){
         env.backends.onnx.wasm.numThreads = 1;
         env.backends.onnx.wasm.proxy = false;
-        env.backends.onnx.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.21.0/dist/';
+        // wasmPaths를 강제로 onnxruntime-web CDN에 고정하면 Transformers.js 내부 ORT 버전과
+        // WASM 바이너리 버전이 어긋나 _OrtGetInputOutputMetadata 오류가 날 수 있습니다.
+        // 따라서 Transformers.js가 자기 버전에 맞는 WASM을 자동으로 고르게 둡니다.
+        try{ delete env.backends.onnx.wasm.wasmPaths; }catch(_){ env.backends.onnx.wasm.wasmPaths = undefined; }
       }
     }catch(e){}
     postProgress(id, 0.31, 'Whisper 실행 준비 중');
@@ -794,7 +805,13 @@
         postProgress(id, 1, '음성 인식 완료');
         self.postMessage({id:id, ok:true, result:out});
       }
-    }catch(err){ self.postMessage({id:id, ok:false, error:String(err && err.message ? err.message : err)}); }
+    }catch(err){
+      let msg = String(err && err.message ? err.message : err);
+      if(msg.indexOf('_OrtGetInputOutputMetadata') >= 0 || msg.indexOf('OrtGetInputOutputMetadata') >= 0){
+        msg = 'ONNX Runtime WASM 버전 충돌이 감지되어 자동 복구 설정을 적용했습니다. 브라우저 캐시가 남아 있으면 Ctrl+F5로 새로고침 후 다시 분석해 주세요. 원문: ' + msg;
+      }
+      self.postMessage({id:id, ok:false, error:msg});
+    }
   };
   `;
   let asrWorker;
