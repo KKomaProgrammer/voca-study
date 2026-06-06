@@ -655,6 +655,7 @@
     await fetchAndCacheRemote(MODEL_BASE + 'onnx/' + file, id, start, span);
   }
   self.fetch = async function(input, init){
+    const url = typeof input === 'string' ? input : (input && input.url ? input.url : String(input || ''));
     const file = getOnnxFile(input);
     if(file){
       try{
@@ -665,6 +666,15 @@
         }
       }catch(e){}
     }
+    try{
+      if(url && url.indexOf(MODEL_BASE) === 0){
+        const cache = await openCache();
+        if(cache){
+          const hit = await cache.match(url);
+          if(hit) return hit.clone();
+        }
+      }
+    }catch(e){}
     return originalFetch(input, init);
   };
   async function warmupModelFiles(id){
@@ -730,7 +740,7 @@
     const pipeline = mod.pipeline;
     const env = mod.env || {};
     try{ env.allowLocalModels = false; env.allowRemoteModels = true; env.useBrowserCache = true; }catch(e){}
-    try{ env.remoteHost = 'https://huggingface.co'; env.remotePathTemplate = '{model}/resolve/main/{file}'; }catch(e){}
+    try{ env.remoteHost = 'https://huggingface.co'; env.remotePathTemplate = '{model}/resolve/main/'; }catch(e){}
     try{
       if(env.backends && env.backends.onnx && env.backends.onnx.wasm){
         env.backends.onnx.wasm.numThreads = 1;
